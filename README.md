@@ -34,6 +34,10 @@ week through the data files published next to the page. To add Ticketmaster show
 named `TICKETMASTER_KEY` (Settings > Secrets and variables > Actions). To refresh it now: Actions > Live page >
 Run workflow.
 
+Eventbrite turns away GitHub's servers, so its shows come from a PC: double-click **`Send Eventbrite to live page.cmd`**
+(needs the GitHub `gh` tool signed in). It reads Eventbrite from the PC, uploads the list to `feeds/eventbrite.csv`
+and refreshes the page. The weekly refresh keeps using that list for up to 8 days, so run it once a week.
+
 ## For developers
 
 Everything is in [`source`](source): plain Windows PowerShell 5.1 and one HTML template, nothing to install.

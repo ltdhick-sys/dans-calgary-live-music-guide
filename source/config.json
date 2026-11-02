@@ -11,7 +11,7 @@
 
   "sources": [
     { "name": "Songkick (Calgary metro)", "type": "jsonld", "url": "https://www.songkick.com/metro-areas/27359-canada-calgary?page={page}", "max_pages": 15, "music_only": false, "enabled": true },
-    { "name": "Eventbrite (Calgary concerts)", "type": "jsonld", "url": "https://www.eventbrite.ca/d/canada--calgary/concerts/?page={page}", "max_pages": 12, "music_only": true, "enabled": true },
+    { "name": "Eventbrite (Calgary concerts)", "type": "jsonld", "url": "https://www.eventbrite.ca/d/canada--calgary/concerts/?page={page}", "max_pages": 12, "music_only": true, "feed": "feeds/eventbrite.csv", "feed_max_age_days": 8, "enabled": true },
     { "name": "Showpass (Calgary)", "type": "showpass", "query": "calgary", "page_size": 50, "max_pages": 15, "music_only": true, "enabled": true },
     { "name": "Ticketmaster API", "type": "ticketmaster", "api_key": "", "latlong": "51.0447,-114.0719", "radius_km": 40, "enabled": true },
 

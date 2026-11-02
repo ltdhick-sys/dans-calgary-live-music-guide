@@ -28,7 +28,13 @@
 
 .PARAMETER Web
   Draws the page for the public website (GitHub Pages): a full web document that fits phones, without the
-  Windows-only instructions, and with a link to -ProjectUrl for downloading the program.
+  Windows-only instructions, and with a link to -ProjectUrl for downloading the program. Sources with a "feed"
+  file in config.json are read from that file instead of the site (see -ExportFeed).
+
+.PARAMETER ExportFeed
+  Reads only the sources that have a "feed" file in config.json (Eventbrite, which turns away GitHub's servers)
+  and saves what they list in this folder, one file per source, for Send-EventbriteFeed.ps1 to upload. Nothing
+  else is read or changed.
 
   Settings: config.json holds the defaults. Put your own changes in data\config.local.json (same layout,
   only the settings you change); it overrides config.json and is never touched by an upgrade.
@@ -44,7 +50,8 @@ param(
   [switch]$RenderOnly,
   [switch]$NotifyDone,
   [switch]$Web,
-  [string]$ProjectUrl
+  [string]$ProjectUrl,
+  [string]$ExportFeed
 )
 
 $ErrorActionPreference = 'Stop'
@@ -98,7 +105,7 @@ function Open-Guide {
 
 # One update at a time: the weekly task, "Update concert list now", Edit watchlist and the first refresh after
 # install can overlap. A redraw waits up to 2 minutes for a running update; a second full update just stops.
-if (-not $DryRun) {
+if (-not $DryRun -and -not $ExportFeed) {
   $lock = New-Object Threading.Mutex($false, 'Local\DansCalgaryLiveMusicGuide')
   $haveLock = $false
   try { $haveLock = $lock.WaitOne($(if ($RenderOnly) { 120000 } else { 0 })) } catch [Threading.AbandonedMutexException] { $haveLock = $true }
@@ -578,6 +585,59 @@ function Read-Manual {
   return $out
 }
 
+# The website copy can't read every site (Eventbrite turns away GitHub's servers). For a source with a "feed"
+# file it uses the list a PC saved with -ExportFeed and uploaded to the project; a list older than
+# feed_max_age_days (default 8) isn't used, so the page never shows a stale list or flags shows by mistake.
+function Read-Feed($src) {
+  $path = Join-Path (Split-Path $root -Parent) $src.feed
+  if (-not (Test-Path $path)) { throw "no list has been sent from a PC yet ($($src.feed))" }
+  $rows = @(Import-Csv $path -Encoding UTF8)
+  $listed = @($rows | ForEach-Object { $_.listed_on } | Where-Object { IsDate $_ } | Sort-Object)[-1]
+  if (-not $listed) { throw "the list in $($src.feed) has no date" }
+  $age = ($today - [datetime]::ParseExact($listed, 'yyyy-MM-dd', $inv)).Days
+  $maxAge = if ($src.feed_max_age_days) { [int]$src.feed_max_age_days } else { 8 }
+  if ($age -gt $maxAge) { throw "the list sent from a PC is $age days old (sent $listed), so it wasn't used" }
+  Log "$($src.name): using the list sent from a PC on $listed."
+  $out = New-Object System.Collections.Generic.List[object]
+  foreach ($r in $rows) {
+    if (-not (IsDate $r.date) -or $r.date -lt $todayS -or $r.date -gt $horizonS) { continue }
+    $out.Add([pscustomobject]@{
+      date = $r.date; artist = $r.artist; title = $r.title; support = $r.support; venue = $r.venue; genre = $r.genre
+      notes = $r.notes; url = $r.url; cancelled = ($r.cancelled -eq 'True'); time = $r.time
+      price_min = $r.price_min; price_max = $r.price_max; lat = $r.lat; lon = $r.lon; address = $r.address; city = $r.city
+    })
+  }
+  return $out
+}
+function Read-Source($src) {
+  if ($Web -and $src.feed) { return Read-Feed $src }
+  switch ($src.type) {
+    'jsonld'       { return Read-JsonLd $src }
+    'showpass'     { return Read-Showpass $src }
+    'ticketmaster' { return Read-Ticketmaster $src }
+    'manual'       { return Read-Manual }
+    default        { throw "Unknown source type '$($src.type)'" }
+  }
+}
+
+# ---------------------------------------------------------------- export for the website copy
+
+if ($ExportFeed) {
+  $feedSources = @($cfg.sources | Where-Object { $_.enabled -and $_.feed })
+  if (-not $feedSources.Count) { throw 'No source in config.json has a "feed" file to export.' }
+  New-Item -ItemType Directory -Force $ExportFeed | Out-Null
+  foreach ($src in $feedSources) {
+    $rows = @(Read-JsonLd $src | Where-Object { $_ } |
+      Select-Object date, artist, title, support, venue, genre, notes, url, cancelled, time, price_min, price_max, lat, lon, address, city,
+        @{ n = 'listed_on'; e = { $todayS } })
+    if (-not $rows.Count) { throw "$($src.name) returned no shows, so nothing was exported." }
+    $file = Join-Path $ExportFeed (Split-Path $src.feed -Leaf)
+    $rows | Export-Csv $file -NoTypeInformation -Encoding UTF8
+    Log "$($src.name): exported $($rows.Count) shows to $file"
+  }
+  return
+}
+
 # ---------------------------------------------------------------- run sources
 
 if ($RenderOnly) {
@@ -588,13 +648,7 @@ if ($RenderOnly) {
   foreach ($src in $sources) {
     $st = [ordered]@{ found = 0; new = 0; matched = 0; error = '' }
     try {
-      $cands = switch ($src.type) {
-        'jsonld'       { Read-JsonLd $src }
-        'showpass'     { Read-Showpass $src }
-        'ticketmaster' { Read-Ticketmaster $src }
-        'manual'       { Read-Manual }
-        default        { throw "Unknown source type '$($src.type)'" }
-      }
+      $cands = Read-Source $src
       foreach ($c in @($cands)) {
         if (-not $c) { continue }
         $st.found++
