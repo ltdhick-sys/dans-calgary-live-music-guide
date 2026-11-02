@@ -13,22 +13,71 @@
 .PARAMETER Repo
   owner/name of the GitHub project. Defaults to the project this folder was cloned from or pushed to.
 
+.PARAMETER Schedule
+  Sets up a weekly Windows task that runs this script (default Mondays 06:30, before the live page's Monday
+  refresh). Use -Day and -Time to choose another slot. -Unschedule removes the task.
+
 .EXAMPLE
   powershell -NoProfile -ExecutionPolicy Bypass -File .\Send-EventbriteFeed.ps1
+  powershell -NoProfile -ExecutionPolicy Bypass -File .\Send-EventbriteFeed.ps1 -Schedule
 #>
-param([string]$Repo)
+param(
+  [string]$Repo,
+  [switch]$Schedule,
+  [switch]$Unschedule,
+  [ValidateSet('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday')]
+  [string]$Day = 'Monday',
+  [string]$Time = '06:30'
+)
 
 $ErrorActionPreference = 'Stop'
-$root    = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-$project = Split-Path $root -Parent
+$root     = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
+$project  = Split-Path $root -Parent
+$TaskName = "Dan's Calgary Live Music Guide - send Eventbrite"
+# keep a record of the last run, since the weekly task runs without a window
+$logFile = Join-Path $env:TEMP 'DansCalgaryLiveMusicGuide-send-eventbrite.log'
+if (-not $Schedule -and -not $Unschedule) { try { Start-Transcript -Path $logFile -Force | Out-Null } catch { } }
+trap { Write-Host "Stopped: $($_.Exception.Message)" -ForegroundColor Red; try { Stop-Transcript | Out-Null } catch { }; exit 1 }
+
+if ($Unschedule) {
+  Unregister-ScheduledTask -TaskName $TaskName -Confirm:$false
+  Write-Host "Removed the weekly task ""$TaskName""."
+  return
+}
 
 if (-not (Get-Command gh -ErrorAction SilentlyContinue)) { throw 'The GitHub command-line tool (gh) is not installed on this PC.' }
-cmd /c 'gh auth status >nul 2>nul'
-if ($LASTEXITCODE -ne 0) { throw 'GitHub is not signed in on this PC. Run: gh auth login --web' }
+$authText = (cmd /c 'gh auth status 2>&1') -join "`n"
+if ($LASTEXITCODE -ne 0) {
+  Write-Host $authText
+  Write-Host ("gh: {0}; APPDATA: {1}; sign-in file found: {2}" -f (Get-Command gh).Source, $env:APPDATA, (Test-Path (Join-Path $env:APPDATA 'GitHub CLI\hosts.yml')))
+  throw 'GitHub is not signed in on this PC. Run: gh auth login --web'
+}
 if (-not $Repo) {
   $url = (cmd /c "git -C ""$project"" remote get-url origin 2>nul")
   $Repo = ([string]$url).Trim() -replace '^https://github\.com/', '' -replace '\.git$', ''
   if ($Repo -notmatch '^[\w.-]+/[\w.-]+$') { throw 'Could not tell which GitHub project to send to. Run again with -Repo owner/name.' }
+}
+
+if ($Schedule) {
+  if ($Time -notmatch '^([01]?\d|2[0-3]):([0-5]\d)$') { throw "Time must be like 06:30, not '$Time'." }
+  # On a mapped network drive, the task uses the full network path, which works even when the letter isn't mapped
+  $self = $PSCommandPath
+  $drive = Get-PSDrive -Name $self.Substring(0, 1) -ErrorAction SilentlyContinue
+  if ($drive -and $drive.DisplayRoot -like '\\*') { $self = $drive.DisplayRoot.TrimEnd('\') + $self.Substring(2) }
+  $action  = New-ScheduledTaskAction -Execute 'powershell.exe' `
+               -Argument ('-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "{0}" -Repo {1}' -f $self, $Repo)
+  $trigger = New-ScheduledTaskTrigger -Weekly -DaysOfWeek $Day -At ([datetime]::Today.AddHours([int]$Matches[1]).AddMinutes([int]$Matches[2]))
+  # local clock time with no UTC offset, so it stays at the same hour after daylight saving changes
+  $inv = [Globalization.CultureInfo]::InvariantCulture
+  $trigger.StartBoundary = [DateTimeOffset]::Parse([string]$trigger.StartBoundary, $inv).LocalDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss", $inv)
+  # if the PC is off or asleep then, it runs at the next chance; the upload refreshes the page itself
+  $settings = New-ScheduledTaskSettingsSet -StartWhenAvailable -RunOnlyIfNetworkAvailable -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries `
+                -ExecutionTimeLimit (New-TimeSpan -Minutes 15)
+  Register-ScheduledTask -TaskName $TaskName -Action $action -Trigger $trigger -Settings $settings -Force `
+    -Description "Sends this PC's Eventbrite listings to the live page of $Repo" | Out-Null
+  Write-Host "Scheduled ""$TaskName"" every $Day at $Time." -ForegroundColor Green
+  Write-Host "Each run's output is saved to $logFile"
+  return
 }
 
 # 1. read Eventbrite from this PC
@@ -69,4 +118,5 @@ try {
   }
 } finally {
   Remove-Item $tmp -Recurse -Force -ErrorAction SilentlyContinue
+  try { Stop-Transcript | Out-Null } catch { }
 }
