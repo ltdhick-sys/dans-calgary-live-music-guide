@@ -5,6 +5,8 @@ Palomino, the King Eddy and the Blues Can, in one page you can filter, star and 
 Windows program refreshes the list every week from public listing sites (Songkick, Eventbrite, Showpass,
 Live Nation venue pages and, with a free key, Ticketmaster).
 
+**See it live:** https://ltdhick-sys.github.io/dans-calgary-live-music-guide/ (works on phones; refreshed every Monday).
+
 ## Install (Windows 10 or 11)
 
 1. Download **Dan's Calgary Live Music Guide.zip** from the latest release on this page (under **Releases**).
@@ -23,6 +25,14 @@ see `source/README.md`.
 - A watchlist of artists and venues raises a Windows notification when a new show is announced.
 - Listen first on Spotify or YouTube, open the venue in Google Maps, hide acts you're not interested in.
 - Copy any list into Excel.
+
+## The live page
+
+`.github/workflows/live-page.yml` runs the same updater every Monday on a Windows machine in GitHub's cloud and
+publishes the page with GitHub Pages (`-Web` draws it for browsers and phones). The list carries over from week to
+week through the data files published next to the page. To add Ticketmaster shows to it, create a repository secret
+named `TICKETMASTER_KEY` (Settings > Secrets and variables > Actions). To refresh it now: Actions > Live page >
+Run workflow.
 
 ## For developers
 

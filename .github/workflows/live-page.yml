@@ -1,0 +1,79 @@
+# Rebuilds the public web page of the guide every Monday and publishes it with GitHub Pages.
+# Runs the same updater as the Windows program, on a Windows machine in GitHub's cloud. The list carries over
+# from week to week through the data files published next to the page (site/data), so nothing is committed.
+# Optional: a repository secret named TICKETMASTER_KEY adds the Ticketmaster source.
+name: Live page
+
+on:
+  schedule:
+    - cron: '0 14 * * 1'   # Mondays 14:00 UTC: 7 am in Calgary in winter, 8 am in summer
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'source/**'
+      - '.github/workflows/live-page.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: live-page
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    runs-on: windows-latest
+    timeout-minutes: 40
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: pages
+        uses: actions/configure-pages@v5
+
+      - name: Bring back the list from the last run
+        shell: powershell
+        env:
+          SITE: ${{ steps.pages.outputs.base_url }}
+        run: |
+          foreach ($f in 'shows.csv', 'venues.csv', 'runs.csv', 'source-runs.csv') {
+            try {
+              Invoke-WebRequest -UseBasicParsing -Uri "$env:SITE/data/$f" -OutFile "source/data/$f"
+              Write-Host "Restored $f from the live page"
+            } catch {
+              Write-Host "No $f on the live page yet, so the copy in the repository is used"
+            }
+          }
+
+      - name: Refresh the list
+        shell: powershell
+        env:
+          TICKETMASTER_KEY: ${{ secrets.TICKETMASTER_KEY }}
+          PROJECT: ${{ github.server_url }}/${{ github.repository }}
+        run: |
+          if ($env:TICKETMASTER_KEY) { [IO.File]::WriteAllText("$PWD\source\data\ticketmaster.key", $env:TICKETMASTER_KEY) }
+          try { & .\source\Update-CalgaryConcerts.ps1 -Web -ProjectUrl $env:PROJECT }
+          finally { Remove-Item .\source\data\ticketmaster.key -ErrorAction SilentlyContinue }
+
+      - name: Put the site together
+        shell: powershell
+        run: |
+          New-Item -ItemType Directory -Force site\data | Out-Null
+          Copy-Item source\output\calgary-live-music.html site\index.html
+          Copy-Item source\output\calgary-live-music.csv site\calgary-live-music.csv
+          foreach ($f in 'shows.csv', 'venues.csv', 'runs.csv', 'source-runs.csv') {
+            if (Test-Path "source\data\$f") { Copy-Item "source\data\$f" "site\data\$f" }
+          }
+          New-Item site\.nojekyll -ItemType File -Force | Out-Null
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+      - id: deploy
+        uses: actions/deploy-pages@v4

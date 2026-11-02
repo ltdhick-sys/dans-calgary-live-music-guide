@@ -341,6 +341,7 @@ section.month { margin-top: 26px; }
 footer { border-top: 1px solid var(--line); padding-block: 24px 48px; display: grid; gap: 22px; color: var(--muted); font-size: 13px; }
 footer h3 { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; color: var(--ink); font-size: 22px; margin: 0 0 8px; letter-spacing: .02em; }
 footer p { margin: 0 0 6px; max-width: 75ch; }
+footer a { color: var(--accent); font-weight: 600; }
 #watchlist { border-radius: 8px; transition: box-shadow .3s; }
 #watchlist.flash { box-shadow: 0 0 0 3px var(--gold); }
 .terms { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
@@ -514,6 +515,8 @@ main:focus { outline: none; }
   var RAW = JSON.parse(document.getElementById('data').textContent);
   var INFO = JSON.parse(document.getElementById('info').textContent);
   var VENUES = INFO.venues || {}, WATCH = INFO.watch || [];
+  // the public website copy: no Windows-only instructions, and a link to the program instead
+  var WEB = !!INFO.web, PROJECT = INFO.project || '';
   // the newest "added" date is the most recent refresh that found new shows
   var LATEST = RAW.reduce(function (m, r) { return r.added && r.added > m ? r.added : m; }, '');
   var DATA = RAW.filter(function (r) { return r.date >= TODAY; });
@@ -840,7 +843,7 @@ main:focus { outline: none; }
     var w = document.getElementById('watchlist'); w.scrollIntoView({ behavior: 'smooth', block: 'center' });
     w.classList.add('flash'); setTimeout(function () { w.classList.remove('flash'); }, 1600);
   });
-  if (!WATCHN.length) quickWrap.insertBefore(setupBtn, QK.watch.btn.nextSibling);
+  if (!WATCHN.length && !WEB) quickWrap.insertBefore(setupBtn, QK.watch.btn.nextSibling);
   function visible(r) { return state.showHidden || !hidden[r._akey]; }
   function syncQuick() {
     QUICK.forEach(function (q) {
@@ -1373,7 +1376,8 @@ main:focus { outline: none; }
       icsAll.textContent = 'Add these to Outlook'; icsAll.hidden = FRAMED || !(state.quick === 'mine' && rows.length);
       if (!rows.length) {
         out.appendChild(el('div', 'empty', !DATA.length
-          ? 'No shows on the list yet. On the PC, open the Start menu, find Dan’s Calgary Live Music Guide and choose "Update concert list now".'
+          ? (WEB ? 'No shows on the list yet. Check back after the next weekly refresh.'
+                 : 'No shows on the list yet. On the PC, open the Start menu, find Dan’s Calgary Live Music Guide and choose "Update concert list now".')
           : state.quick === 'mine' && !Object.keys(stars).length
           ? 'No starred shows yet. Click the ☆ on any show to keep it here.'
           : 'The stage is quiet: no shows match these filters. Clear a filter or try a shorter search.'));
@@ -1423,7 +1427,8 @@ main:focus { outline: none; }
     var age = INFO.run ? dayDiff(INFO.run, TODAY) : 0;
     if (age > (INFO.stale_days || 10) && !bannerState.staleClosed) {
       add('', 'This list was last updated ' + age + ' days ago (' + INFO.checked + ').',
-        'The weekly refresh may have stopped. On the PC, open the Start menu, find Dan’s Calgary Live Music Guide and choose "Update concert list now".',
+        WEB ? 'The weekly refresh may have stopped, so some shows may be missing or out of date.'
+            : 'The weekly refresh may have stopped. On the PC, open the Start menu, find Dan’s Calgary Live Music Guide and choose "Update concert list now".',
         null, function () { bannerState.staleClosed = true; });
     }
     var seen = bannerState.seenRun;
@@ -1452,14 +1457,23 @@ main:focus { outline: none; }
 
   // ---------------------------------------------------------------- footer
   var wb = document.getElementById('watchbody');
-  if (WATCHN.length) {
+  if (WEB) {
+    // on the website this footer block explains the page and points to the Windows program
+    document.querySelector('#watchlist h3').textContent = 'About this page';
+    wb.appendChild(el('p', null, 'The list is rebuilt every Monday from Songkick, Eventbrite, Showpass, Live Nation and Ticketmaster listings. Stars, My calendar and hidden acts are saved in this browser only.'));
+    if (PROJECT) {
+      var gp = el('p', null, 'Want it on your Windows PC, refreshed weekly with notifications for the artists you follow? ');
+      var ga = el('a', null, 'Get Dan’s Calgary Live Music Guide for Windows'); ga.href = PROJECT + '/releases/latest'; ga.rel = 'noopener';
+      gp.appendChild(ga); gp.appendChild(document.createTextNode('.')); wb.appendChild(gp);
+    }
+  } else if (WATCHN.length) {
     var terms = el('div', 'terms'); WATCHN.forEach(function (x) { terms.appendChild(el('span', null, x.w)); }); wb.appendChild(terms);
     var nw = DATA.filter(function (r) { return r._watch; }).length;
     wb.appendChild(el('p', null, plural(nw, 'upcoming show') + ' match. When a refresh finds a new one, Windows shows a notification and it is marked "Watching" here.'));
   } else {
     wb.appendChild(el('p', null, 'Your watchlist is empty. Add the artists and venues you care about, and when a refresh finds a new show from one of them, Windows shows a notification and the show is marked "Watching" here.'));
   }
-  wb.appendChild(el('p', null, 'To change it on the PC: Start menu › Dan’s Calgary Live Music Guide › Edit watchlist. Type one name per line, save, close Notepad and press a key in the window that opened; the guide reopens with your changes.'));
+  if (!WEB) wb.appendChild(el('p', null, 'To change it on the PC: Start menu › Dan’s Calgary Live Music Guide › Edit watchlist. Type one name per line, save, close Notepad and press a key in the window that opened; the guide reopens with your changes.'));
   var vWrap = document.getElementById('venues');
   var tierOf = {}; DATA.forEach(function (r) { tierOf[r.venue] = r.tier; });
   Object.keys(venueCount).sort(function (a, b) { return venueCount[b] - venueCount[a] || a.localeCompare(b); }).forEach(function (v) {

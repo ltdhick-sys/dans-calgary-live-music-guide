@@ -26,6 +26,10 @@
 .PARAMETER NotifyDone
   Shows a Windows notification when the refresh finishes (used for the first refresh after install).
 
+.PARAMETER Web
+  Draws the page for the public website (GitHub Pages): a full web document that fits phones, without the
+  Windows-only instructions, and with a link to -ProjectUrl for downloading the program.
+
   Settings: config.json holds the defaults. Put your own changes in data\config.local.json (same layout,
   only the settings you change); it overrides config.json and is never touched by an upgrade.
 
@@ -38,7 +42,9 @@ param(
   [switch]$Open,
   [switch]$DryRun,
   [switch]$RenderOnly,
-  [switch]$NotifyDone
+  [switch]$NotifyDone,
+  [switch]$Web,
+  [string]$ProjectUrl
 )
 
 $ErrorActionPreference = 'Stop'
@@ -729,11 +735,15 @@ $info = [ordered]@{
   caveats    = @(@($cfg.page.caveats) + $srcLine | Where-Object { $_ })
   watch      = @($watch)
   venues     = $venueMap
+  web        = [bool]$Web
+  project    = [string]$ProjectUrl
 }
 $json = ConvertTo-Json -InputObject $pageRows -Compress -Depth 3
 $infoJson = ConvertTo-Json -InputObject $info -Compress -Depth 5
 $tpl = [IO.File]::ReadAllText((Join-Path $root 'template.html'), [Text.Encoding]::UTF8)
 $html = $tpl.Replace('__DATA__', $json).Replace('__INFO__', $infoJson)
+# the website copy is a complete web document, so browsers use standards mode and phones size it to the screen
+if ($Web) { $html = '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">' + "`n" + $html }
 $wroteHtml = TryWrite 'the guide page' { [IO.File]::WriteAllText($htmlPath, $html, (New-Object Text.UTF8Encoding $false)) }
 if ($wroteHtml) { Log "Wrote $htmlPath" }
 
