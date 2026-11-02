@@ -50,6 +50,9 @@ $authText = (cmd /c 'gh auth status 2>&1') -join "`n"
 if ($LASTEXITCODE -ne 0) {
   Write-Host $authText
   Write-Host ("gh: {0}; APPDATA: {1}; sign-in file found: {2}" -f (Get-Command gh).Source, $env:APPDATA, (Test-Path (Join-Path $env:APPDATA 'GitHub CLI\hosts.yml')))
+  $ghDir = Join-Path $env:APPDATA 'GitHub CLI'
+  Write-Host ("files in {0}: {1}" -f $ghDir, $(if (Test-Path $ghDir) { (Get-ChildItem $ghDir -Force | ForEach-Object Name) -join ', ' } else { '(folder missing)' }))
+  Write-Host ("saved GitHub credentials (names only): {0}" -f ((cmd /c 'cmdkey /list' | Select-String 'gh:|github' | ForEach-Object { $_.Line.Trim() }) -join '; '))
   throw 'GitHub is not signed in on this PC. Run: gh auth login --web'
 }
 if (-not $Repo) {
