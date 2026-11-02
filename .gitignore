@@ -1,0 +1,13 @@
+# Built installer and email zip: rebuilt by source\Build-Setup.ps1. Your own copies carry your Ticketmaster key,
+# so they stay off GitHub; a key-free installer goes out as a release download instead.
+Dan's Calgary Live Music Guide.cmd
+Dan's Calgary Live Music Guide.zip
+
+# private or per-PC files
+source/data/ticketmaster.key
+source/data/config.local.json
+source/config.previous.json
+source/data/backup/
+source/data/past-shows.csv
+source/output/changes/
+*.tmp

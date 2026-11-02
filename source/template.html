@@ -1,0 +1,1560 @@
+<title>Dan’s Calgary Live Music Guide</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Big+Shoulders+Display:wght@700;800&family=Instrument+Sans:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: gig-guide listing. Filter rail (sticky on roomy screens), months split into one card per date, each card headed by a
+   ticket-stub date bar that sticks under the filters. Every row uses the same fixed columns (icon | act | venue | actions) so
+   they line up down the page whatever the text length.
+   Palette: Calgary red, gold and black on a warm white; music touches are the record and EQ bars in the header, staff lines
+   under each month and a genre icon on each show. */
+:root {
+  --bg: #F5F2EB;
+  --surface: #FFFFFF;
+  --ink: #111111;
+  --muted: #5C5650;
+  --line: #DED6C8;
+  --chip: #EDE6D8;
+  --accent: #C8102E;
+  --accent-ink: #FFFFFF;
+  --gold: #F1BE48;
+  --gold-ink: #111111;
+  --star: #C99418;
+  --icon: #8A8175;
+  --staff: #CBBFA9;
+  --t-arena: #C8102E;
+  --t-hall: #C99418;
+  --t-club: #111111;
+  --t-fest: #F26B1D;
+  --shadow: rgba(17, 17, 17, .16);
+  --day-bg: #111111; --day-ink: #FFFFFF; --day-muted: #BDB5A8; --day-rule: rgba(241, 190, 72, .5);
+  --vinyl: #111111; --groove: rgba(255, 255, 255, .1);
+  --warn-bg: #FBEFCF; --alert-bg: #FBE4E7; --note-bg: #EDE6D8;
+  --font-display: "Big Shoulders Display", "Arial Narrow", Impact, sans-serif;
+  --font-body: "Instrument Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0C0C0C; --surface: #181818; --ink: #F3EFE6; --muted: #A49E94; --line: #2E2B27; --chip: #24211D;
+    --accent: #F5364A; --accent-ink: #160406; --gold: #F1BE48; --gold-ink: #111111; --star: #F1BE48; --icon: #8C867C; --staff: #3D3934;
+    --t-arena: #F5364A; --t-hall: #F1BE48; --t-club: #F3EFE6; --t-fest: #FF8A3D;
+    --shadow: rgba(0, 0, 0, .55);
+    --day-bg: #000000; --day-ink: #F3EFE6; --day-muted: #A9A296; --day-rule: rgba(241, 190, 72, .45);
+    --vinyl: #262626; --groove: rgba(255, 255, 255, .08);
+    --warn-bg: #2E2611; --alert-bg: #33131A; --note-bg: #24211D;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0C0C0C; --surface: #181818; --ink: #F3EFE6; --muted: #A49E94; --line: #2E2B27; --chip: #24211D;
+  --accent: #F5364A; --accent-ink: #160406; --gold: #F1BE48; --gold-ink: #111111; --star: #F1BE48; --icon: #8C867C; --staff: #3D3934;
+  --t-arena: #F5364A; --t-hall: #F1BE48; --t-club: #F3EFE6; --t-fest: #FF8A3D;
+  --shadow: rgba(0, 0, 0, .55);
+  --day-bg: #000000; --day-ink: #F3EFE6; --day-muted: #A9A296; --day-rule: rgba(241, 190, 72, .45);
+  --vinyl: #262626; --groove: rgba(255, 255, 255, .08);
+  --warn-bg: #2E2611; --alert-bg: #33131A; --note-bg: #24211D;
+  color-scheme: dark;
+}
+* { box-sizing: border-box; }
+/* the hidden attribute must win over component display rules (dropdown panels, toast, copy box) */
+[hidden] { display: none !important; }
+body {
+  /* red and gold jersey stripe across the top of the page */
+  background: linear-gradient(var(--accent) 0 6px, var(--gold) 6px 9px, transparent 9px) top / 100% 9px no-repeat, var(--bg);
+  color: var(--ink); font-family: var(--font-body); font-size: 15px; line-height: 1.45; margin: 0;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 1080px; margin: 0 auto; }
+header.top { padding-block: 36px 18px; display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px 28px; align-items: center; }
+header.top > * { grid-column: 1; }
+.eyebrow { font-size: 12px; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
+h1 { font-family: var(--font-display); font-weight: 800; font-size: clamp(40px, 7vw, 68px); line-height: .92; margin: 0; letter-spacing: .01em; text-transform: uppercase; text-wrap: balance; }
+h1 .hl { color: var(--accent); }
+
+/* header art: a spinning record and bouncing EQ bars */
+header.top > .hero-art { grid-column: 2; grid-row: 1 / span 4; width: 250px; height: auto; }
+.hero-art .disc { transform-box: fill-box; transform-origin: center; animation: spin 9s linear infinite; }
+.hero-art .eq rect { transform-box: fill-box; transform-origin: 50% 100%; animation: eq 1.3s ease-in-out infinite alternate; }
+.hero-art .eq rect:nth-child(2) { animation-delay: -.45s; }
+.hero-art .eq rect:nth-child(3) { animation-delay: -.9s; }
+.hero-art .eq rect:nth-child(4) { animation-delay: -.2s; }
+.hero-art .eq rect:nth-child(5) { animation-delay: -.7s; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes eq { from { transform: scaleY(.35); } to { transform: scaleY(1); } }
+@media (max-width: 760px) {
+  header.top { grid-template-columns: minmax(0, 1fr); }
+  header.top > .hero-art { display: none; }
+}
+.lede { color: var(--muted); max-width: 68ch; margin: 0; }
+.stats { display: flex; flex-wrap: wrap; gap: 8px 22px; margin-top: 4px; font-variant-numeric: tabular-nums; }
+.stats b { font-family: var(--font-display); font-size: 26px; font-weight: 800; margin-right: 5px; }
+.stats span { color: var(--muted); font-size: 13px; }
+
+/* notices above the filters: list out of date, watchlist news, starred shows in trouble */
+#banners { display: grid; gap: 8px; }
+#banners:not(:empty) { margin-bottom: 12px; }
+.banner { display: flex; gap: 12px; align-items: flex-start; padding: 10px 12px 10px 14px; border-radius: 8px; border-left: 4px solid var(--gold); background: var(--warn-bg); font-size: 14px; }
+.banner.alert { border-left-color: var(--accent); background: var(--alert-bg); }
+.banner.watch { border-left-color: var(--ink); background: var(--note-bg); }
+.banner .bt { flex: 1 1 auto; min-width: 0; }
+.banner b { display: block; }
+.banner .bl { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.banner .bx { display: flex; gap: 6px; flex: none; align-items: center; }
+
+.filters { background: var(--bg); padding-block: 12px; border-bottom: 1px solid var(--line); display: grid; gap: 10px; }
+/* the filter rail only follows you down the page when there is room for it */
+@media (min-width: 900px) and (min-height: 820px) {
+  .filters { position: sticky; top: max(env(safe-area-inset-top, 0px), var(--top-off, 0px)); z-index: 5; }
+}
+
+/* compact title bar that slides in once the big header has scrolled away; --top-off is its height while shown */
+.brand {
+  position: fixed; top: 0; left: 0; right: 0; z-index: 12; background: var(--day-bg); color: var(--day-ink);
+  padding-top: env(safe-area-inset-top, 0px); box-shadow: 0 6px 18px var(--shadow);
+  transform: translateY(-115%); visibility: hidden; transition: transform .22s ease, visibility 0s linear .22s;
+}
+.brand.on { transform: none; visibility: visible; transition: transform .22s ease, visibility 0s; }
+.brand::after { content: ""; position: absolute; left: 0; right: 0; bottom: -5px; height: 5px; background: linear-gradient(var(--accent) 0 3px, var(--gold) 3px 5px); }
+.brand .bin {
+  max-width: 1080px; margin: 0 auto; min-height: 48px; display: flex; align-items: center; gap: 12px;
+  padding: 6px max(16px, env(safe-area-inset-right, 0px)) 6px max(16px, env(safe-area-inset-left, 0px));
+}
+.brand .home { display: flex; align-items: center; gap: 10px; min-width: 0; background: none; border: 0; padding: 0; color: inherit; cursor: pointer; font: inherit; }
+.brand .logo { width: 44px; height: 34px; flex: none; }
+.brand .logo .disc { transform-box: fill-box; transform-origin: center; animation: spin 6s linear infinite; }
+.brand .logo .eq rect { transform-box: fill-box; transform-origin: 50% 100%; animation: eq 1.1s ease-in-out infinite alternate; }
+.brand .logo .eq rect:nth-child(2) { animation-delay: -.4s; }
+.brand .logo .eq rect:nth-child(3) { animation-delay: -.8s; }
+.brand .bname { font-family: var(--font-display); font-weight: 800; font-size: 23px; letter-spacing: .03em; text-transform: uppercase; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.brand .bname .hl { color: var(--accent); }
+.brand .legend { margin-left: auto; display: flex; gap: 6px; flex: none; }
+.brand .legend button {
+  font: inherit; font-size: 12px; font-weight: 600; display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px;
+  border-radius: 999px; border: 0; background: var(--surface); color: var(--ink); cursor: pointer; white-space: nowrap;
+}
+.brand .legend button[aria-pressed="true"] { box-shadow: 0 0 0 2px var(--gold); }
+@media (max-width: 940px) {
+  .brand .legend .lt { display: none; }
+  .brand .legend button { padding: 6px; }
+}
+@media (max-width: 520px) {
+  .brand .bname { font-size: 18px; }
+  .brand .logo { width: 36px; height: 28px; }
+  .brand .legend { gap: 4px; }
+}
+.frow { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+.frow > * { min-width: 0; }
+input[type=search], input[type=date], select {
+  font: inherit; font-size: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 8px 10px; min-height: 38px;
+}
+select { cursor: pointer; padding-right: 8px; }
+select.active, input[type=date].active { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); font-weight: 600; }
+#q { flex: 1 1 200px; }
+#when { flex: 0 1 150px; }
+.dates { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 13px; color: var(--muted); }
+
+/* multi-select dropdowns */
+.ms { position: relative; flex: 0 1 160px; }
+.ms-btn {
+  width: 100%; font: inherit; font-size: 14px; color: var(--ink); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 6px; padding: 8px 30px 8px 10px; min-height: 38px; text-align: left; cursor: pointer;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; position: relative;
+}
+.ms-btn::after {
+  content: ""; position: absolute; right: 12px; top: 50%; width: 7px; height: 7px;
+  border-right: 2px solid var(--muted); border-bottom: 2px solid var(--muted); transform: translateY(-70%) rotate(45deg);
+}
+.ms-btn.active { border-color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); font-weight: 600; }
+.ms-panel {
+  position: absolute; top: calc(100% + 6px); left: 0; z-index: 8; width: 300px; max-width: calc(100vw - 32px);
+  background: var(--surface); border: 1px solid var(--line); border-radius: 8px; box-shadow: 0 12px 32px var(--shadow);
+  padding: 8px; display: grid; gap: 6px;
+}
+.ms-panel.right { left: auto; right: 0; }
+.ms-panel input[type=search] { width: 100%; min-height: 34px; padding: 6px 9px; }
+.ms-actions { display: flex; justify-content: space-between; gap: 8px; }
+.ms-actions button { font: inherit; font-size: 12px; font-weight: 600; background: none; border: 0; color: var(--accent); cursor: pointer; padding: 2px 4px; }
+.ms-list { max-height: 300px; overflow-y: auto; display: grid; overscroll-behavior: contain; }
+.ms-list label { display: flex; align-items: center; gap: 9px; padding: 6px; border-radius: 5px; cursor: pointer; font-size: 14px; }
+.ms-list label:hover { background: var(--chip); }
+.ms-list label[hidden] { display: none; }
+.ms-list input { accent-color: var(--accent); width: 16px; height: 16px; flex: none; margin: 0; }
+.ms-list .lbl { min-width: 0; overflow-wrap: anywhere; }
+.ms-list .gi { width: 17px; height: 17px; color: var(--icon); }
+.ms-list .n { margin-left: auto; padding-left: 8px; color: var(--muted); font-variant-numeric: tabular-nums; font-size: 12px; }
+.ms-empty { font-size: 13px; color: var(--muted); padding: 6px; }
+.pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.sep { width: 1px; align-self: stretch; background: var(--line); margin: 2px 4px; }
+.tier-btn {
+  font: inherit; font-size: 13px; font-weight: 600; color: var(--ink); background: var(--surface);
+  border: 1px solid var(--line); border-radius: 999px; padding: 6px 12px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px;
+}
+.tier-btn svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.tier-btn[aria-pressed="true"] { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.tier-btn.q[aria-pressed="true"] { background: var(--gold); border-color: var(--gold); color: var(--gold-ink); }
+.tier-btn.q.gone[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.tier-btn.ghost { border-style: dashed; color: var(--muted); }
+.dot { width: 9px; height: 9px; border-radius: 50%; flex: none; background: var(--muted); }
+.dot.arena { background: var(--t-arena); } .dot.hall { background: var(--t-hall); }
+.dot.club { background: var(--t-club); } .dot.fest { background: var(--t-fest); }
+.meta { display: flex; flex-wrap: wrap; gap: 8px 12px; align-items: center; font-size: 13px; color: var(--muted); }
+.meta .grow { flex: 1 1 auto; font-variant-numeric: tabular-nums; }
+.meta select { min-height: 32px; padding: 4px 8px; font-size: 13px; }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 6px; overflow: hidden; background: var(--surface); }
+.seg button { font: inherit; font-size: 13px; font-weight: 600; border: 0; background: none; color: var(--ink); padding: 5px 11px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--line); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--bg); }
+.btn {
+  font: inherit; font-size: 13px; font-weight: 600; border-radius: 6px; padding: 6px 12px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface); color: var(--ink);
+}
+.btn.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.btn.small { padding: 3px 9px; font-size: 12px; }
+.linkbtn { font: inherit; font-size: inherit; font-weight: 600; background: none; border: 0; padding: 0; color: var(--accent); cursor: pointer; text-decoration: underline; }
+button:focus-visible, input:focus-visible, select:focus-visible, a:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+main { padding-block: 8px 40px; }
+section.month { margin-top: 26px; }
+.month h2, .listhead {
+  font-family: var(--font-display); font-weight: 800; text-transform: uppercase; font-size: 30px; margin: 0 0 8px;
+  display: flex; align-items: baseline; gap: 12px; letter-spacing: .02em;
+}
+.month h2 small, .listhead small { font-family: var(--font-body); font-size: 13px; font-weight: 500; color: var(--muted); letter-spacing: 0; text-transform: none; }
+/* five-line music staff running out from each month name */
+.month h2::after, .listhead::after {
+  content: ""; flex: 1 1 auto; min-width: 40px; height: 13px; align-self: center;
+  background: repeating-linear-gradient(to bottom, var(--staff) 0 1px, transparent 1px 3px);
+}
+.listhead { margin-top: 26px; }
+.day { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; margin-top: 14px; }
+.month h2 + .day, .listhead + .day { margin-top: 0; }
+.day-head {
+  position: sticky; top: calc(max(env(safe-area-inset-top, 0px), var(--top-off, 0px)) + var(--filters-h, 0px)); z-index: 3;
+  display: flex; align-items: center; gap: 12px; margin: -1px -1px 0; padding: 7px 14px 10px 0;
+  background: var(--day-bg); color: var(--day-ink); border-radius: 10px 10px 0 0; box-shadow: inset 0 -3px 0 var(--accent);
+  font-size: 14px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+}
+.day-head .dn {
+  font-family: var(--font-display); font-weight: 800; font-size: 28px; line-height: 1; letter-spacing: 0; color: var(--gold);
+  min-width: 64px; padding: 0 12px; text-align: center; border-right: 2px dotted var(--day-rule); font-variant-numeric: tabular-nums;
+}
+.day-head.grp { padding-left: 16px; }
+.day-head .dw { min-width: 0; overflow-wrap: anywhere; }
+.day-head .sub { color: var(--gold); font-size: 12px; letter-spacing: .06em; }
+.day-head .when { background: var(--accent); color: var(--accent-ink); font-size: 11px; letter-spacing: .06em; padding: 2px 7px; border-radius: 4px; }
+.day-head .dc { margin-left: auto; font-size: 12px; font-weight: 600; letter-spacing: .04em; color: var(--day-muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+
+/* fixed columns: icon | act | venue | actions */
+.row {
+  display: grid; grid-template-columns: 64px minmax(0, 1fr) 210px 170px; gap: 4px 12px; align-items: center;
+  padding: 11px 14px 11px 0; border-top: 1px dashed var(--line);
+}
+.day-head + .row { border-top: 0; }
+.row.is-hidden { opacity: .5; }
+.gicon { display: flex; justify-content: center; color: var(--icon); }
+.gi { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.act { min-width: 0; }
+.act .artist { font-weight: 700; font-size: 16px; overflow-wrap: anywhere; }
+.act .support { color: var(--muted); font-size: 13px; overflow-wrap: anywhere; }
+.act .note { font-size: 12px; color: var(--muted); overflow-wrap: anywhere; }
+.act .facts { font-size: 13px; font-weight: 600; margin-top: 2px; font-variant-numeric: tabular-nums; }
+.act .facts .free { color: var(--accent); }
+.pill { display: inline-block; font-size: 11px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; padding: 2px 7px; border-radius: 4px; margin-left: 6px; vertical-align: 2px; white-space: nowrap; }
+.pill.sold { background: var(--accent); color: var(--accent-ink); }
+.pill.tba { background: var(--chip); color: var(--muted); }
+.pill.new { background: var(--gold); color: var(--gold-ink); }
+.pill.watch { background: transparent; color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--gold); }
+.pill.cancel, .pill.gone { background: transparent; color: var(--accent); box-shadow: inset 0 0 0 1px var(--accent); }
+.pill.gone { box-shadow: inset 0 0 0 1px var(--accent); border: 1px dashed transparent; cursor: help; }
+.row.cancelled .artist, .row.cancelled .support { text-decoration: line-through; text-decoration-color: var(--accent); }
+.venue { min-width: 0; font-size: 14px; display: flex; gap: 8px; align-items: baseline; }
+.venue .dot { transform: translateY(-1px); }
+.venue > div { min-width: 0; overflow-wrap: anywhere; }
+.venue .genre { display: block; font-size: 12px; color: var(--muted); }
+.venue a.pin { color: var(--muted); display: inline-flex; vertical-align: -3px; margin-left: 3px; }
+.venue a.pin:hover { color: var(--accent); }
+.venue a.pin svg { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.9; stroke-linecap: round; stroke-linejoin: round; }
+.acts { display: grid; gap: 3px; justify-items: start; min-width: 0; }
+.acts .tix { font-size: 13px; font-weight: 600; color: var(--accent); text-decoration: none; white-space: nowrap; }
+.acts .tix:hover { text-decoration: underline; }
+.acts .tix.none { color: var(--muted); font-weight: 500; }
+.ibtns { display: flex; gap: 2px; margin-left: -5px; }
+.ib {
+  width: 30px; height: 30px; display: grid; place-items: center; border: 0; border-radius: 6px; background: none;
+  color: var(--muted); cursor: pointer; padding: 0; text-decoration: none;
+}
+.ib:hover { background: var(--chip); color: var(--ink); }
+.ib svg { width: 18px; height: 18px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.ib.star[aria-pressed="true"] { color: var(--star); }
+.ib.star[aria-pressed="true"] svg { fill: currentColor; }
+.ib.ics[aria-pressed="true"] { color: var(--accent-ink); background: var(--accent); }
+.pill.plan { background: var(--ink); color: var(--bg); }
+
+/* menu under a show's calendar button: My calendar, Google, Outlook */
+.calmenu {
+  position: fixed; z-index: 30; width: 260px; max-width: calc(100vw - 16px); background: var(--surface); border: 1px solid var(--line);
+  border-radius: 8px; box-shadow: 0 12px 32px var(--shadow); padding: 6px; display: grid; gap: 2px;
+}
+.calmenu .mi {
+  font: inherit; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 10px; padding: 8px 10px; border: 0; border-radius: 6px;
+  background: none; color: var(--ink); text-align: left; cursor: pointer; text-decoration: none; width: 100%;
+}
+.calmenu .mi:hover, .calmenu .mi:focus-visible { background: var(--chip); outline: none; }
+.calmenu .mi svg { width: 18px; height: 18px; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.calmenu .mi.on svg { color: var(--accent); }
+.calmenu .mi small { display: block; font-size: 12px; font-weight: 400; color: var(--muted); }
+.calmenu .mh { font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); padding: 8px 10px 2px; border-top: 1px solid var(--line); margin-top: 4px; }
+.empty { padding: 40px 16px; text-align: center; color: var(--muted); }
+.lost { margin-top: 18px; padding: 10px 14px; border: 1px dashed var(--line); border-radius: 8px; font-size: 13px; color: var(--muted); }
+
+/* calendar view */
+.cal { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); background: var(--line); gap: 1px; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; }
+.cal .wh { background: var(--day-bg); color: var(--day-ink); font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 7px 8px; }
+.cal .cell { background: var(--surface); min-height: 96px; padding: 6px 8px; text-align: left; font: inherit; color: var(--ink); border: 0; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.cal .cell.blank { background: var(--bg); }
+.cal .cell.past { color: var(--muted); background: var(--bg); }
+.cal button.cell { cursor: pointer; }
+.cal button.cell:hover { box-shadow: inset 0 0 0 2px var(--gold); }
+.cal .cd { font-family: var(--font-display); font-weight: 800; font-size: 20px; line-height: 1; }
+.cal .cell.today .cd { color: var(--accent); }
+.cal .cn { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .05em; }
+.cal .nm { font-size: 12px; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.cal .nm.starred::before { content: "★ "; color: var(--star); }
+.cal .nm.planned::before { content: "✓ "; color: var(--accent); font-weight: 700; }
+.cal .more { font-size: 11px; color: var(--muted); }
+.cal .cell.planned { box-shadow: inset 0 3px 0 var(--accent); }
+/* My calendar: each planned show is a chip in its day */
+.cal .chip {
+  display: block; width: 100%; border: 0; border-radius: 4px; padding: 3px 6px; margin-top: 2px; text-align: left; cursor: pointer;
+  font: inherit; font-size: 12px; line-height: 1.3; background: var(--day-bg); color: var(--day-ink);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.cal .chip b { color: var(--gold); margin-right: 4px; }
+.cal .chip.off { background: var(--accent); color: var(--accent-ink); }
+.cal .chip.off b { color: inherit; }
+.mine-note { font-size: 13px; color: var(--muted); margin: -2px 0 12px; }
+.row.flash { box-shadow: inset 4px 0 0 var(--gold); background: var(--warn-bg); transition: background .6s; }
+
+footer { border-top: 1px solid var(--line); padding-block: 24px 48px; display: grid; gap: 22px; color: var(--muted); font-size: 13px; }
+footer h3 { font-family: var(--font-display); font-weight: 800; text-transform: uppercase; color: var(--ink); font-size: 22px; margin: 0 0 8px; letter-spacing: .02em; }
+footer p { margin: 0 0 6px; max-width: 75ch; }
+#watchlist { border-radius: 8px; transition: box-shadow .3s; }
+#watchlist.flash { box-shadow: 0 0 0 3px var(--gold); }
+.terms { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.terms span { background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; color: var(--ink); font-weight: 600; }
+.venues { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 4px 18px; }
+.venues button { font: inherit; text-align: left; background: none; border: 0; color: var(--ink); padding: 3px 0; cursor: pointer; display: flex; gap: 8px; align-items: center; min-width: 0; }
+.venues button .vn { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.venues button:hover span.n { color: var(--accent); }
+.venues span.n { margin-left: auto; font-variant-numeric: tabular-nums; color: var(--muted); }
+.caveats { max-width: 75ch; display: grid; gap: 6px; }
+.caveats p { margin: 0; }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--day-bg); color: var(--day-ink); padding: 9px 16px; border-radius: 8px; font-size: 13px; font-weight: 600; z-index: 20; display: flex; gap: 14px; align-items: center; max-width: calc(100vw - 32px); box-shadow: 0 6px 18px var(--shadow); }
+.skip { position: absolute; left: -9999px; top: 12px; z-index: 40; background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 6px; font-weight: 600; }
+.skip:focus { left: 16px; }
+main:focus { outline: none; }
+.tier-btn[aria-pressed="true"] .dot.club { box-shadow: 0 0 0 1.5px var(--bg); }
+.cal .cn.clash { background: var(--accent); color: var(--accent-ink); border-radius: 3px; padding: 0 4px; align-self: flex-start; }
+.toast button { font: inherit; background: none; border: 0; color: var(--gold); cursor: pointer; text-decoration: underline; padding: 0; }
+#copybox { width: 100%; min-height: 120px; font: 12px ui-monospace, Consolas, monospace; background: var(--surface); color: var(--ink); border: 1px solid var(--line); border-radius: 6px; }
+
+@media (max-width: 720px) {
+  .row { grid-template-columns: 52px minmax(0, 1fr); gap: 4px 10px; }
+  .gicon { grid-row: span 3; align-self: start; padding-top: 2px; }
+  .venue, .acts { grid-column: 2; }
+  .acts { grid-auto-flow: column; justify-content: start; align-items: center; gap: 10px; }
+  .day-head { gap: 10px; font-size: 13px; }
+  .day-head .dn { min-width: 52px; font-size: 26px; }
+  .ms { flex: 1 1 140px; }
+  #when { flex: 1 1 140px; }
+  .sep { display: none; }
+  .cal .cell { min-height: 54px; padding: 4px 5px; }
+  .cal .nm, .cal .more { display: none; }
+  .cal .chip { font-size: 0; padding: 0; height: 6px; }
+  .cal .cn { font-size: 10px; }
+  .cal .wh { padding: 6px 4px; font-size: 10px; letter-spacing: .02em; }
+}
+@media (max-width: 400px) {
+  /* very narrow phones: the ticket link and the icon buttons go on two lines */
+  .acts { grid-auto-flow: row; gap: 2px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+
+<div class="brand" id="brand" aria-hidden="true">
+  <div class="bin">
+    <button class="home" type="button" id="brandHome" title="Back to the top">
+      <svg class="logo" viewBox="0 0 44 34" aria-hidden="true">
+        <g class="eq">
+          <rect x="1" y="19" width="3.6" height="14" rx="1" fill="var(--accent)"/>
+          <rect x="6.2" y="9" width="3.6" height="24" rx="1" fill="var(--gold)"/>
+          <rect x="11.4" y="15" width="3.6" height="18" rx="1" fill="var(--accent)"/>
+        </g>
+        <g class="disc">
+          <circle cx="29" cy="17" r="14" fill="#2B2B2B" stroke="rgba(255,255,255,.28)" stroke-width="1"/>
+          <circle cx="29" cy="17" r="10.5" fill="none" stroke="rgba(255,255,255,.12)" stroke-width="1"/>
+          <circle cx="29" cy="17" r="5.6" fill="var(--accent)"/>
+          <circle cx="29" cy="13.4" r="1.2" fill="var(--gold)"/>
+          <circle cx="29" cy="17" r="1" fill="#2B2B2B"/>
+        </g>
+      </svg>
+      <span class="bname">Dan’s <span class="hl">Calgary</span> Live Music Guide</span>
+    </button>
+    <div class="legend" id="legend" role="group" aria-label="Venue size colours"></div>
+  </div>
+</div>
+
+<div class="wrap">
+  <a class="skip" href="#out">Skip to shows</a>
+  <header class="top">
+    <div class="eyebrow" id="range">Calgary, AB</div>
+    <h1>Dan’s <span class="hl">Calgary</span> Live Music Guide</h1>
+    <p class="lede" id="lede"></p>
+    <div class="stats" id="stats"></div>
+    <svg class="hero-art" viewBox="0 0 250 180" aria-hidden="true">
+      <g class="disc">
+        <circle cx="160" cy="90" r="86" fill="var(--vinyl)"/>
+        <g fill="none" stroke="var(--groove)" stroke-width="1">
+          <circle cx="160" cy="90" r="78"/><circle cx="160" cy="90" r="70"/><circle cx="160" cy="90" r="62"/>
+          <circle cx="160" cy="90" r="54"/><circle cx="160" cy="90" r="46"/><circle cx="160" cy="90" r="38"/>
+        </g>
+        <circle cx="160" cy="90" r="30" fill="var(--accent)"/>
+        <circle cx="160" cy="90" r="24" fill="none" stroke="var(--gold)" stroke-width="2"/>
+        <ellipse cx="154" cy="101" rx="5" ry="3.8" fill="var(--gold)" transform="rotate(-20 154 101)"/>
+        <path d="M158.5 100V79l8 4" fill="none" stroke="var(--gold)" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>
+        <circle cx="160" cy="90" r="3" fill="var(--bg)"/>
+      </g>
+      <path d="M102.7 49.8A70 70 0 0 1 141.9 22.4" fill="none" stroke="rgba(255,255,255,.22)" stroke-width="5" stroke-linecap="round"/>
+      <g class="eq">
+        <rect x="4" y="126" width="11" height="50" rx="2" fill="var(--accent)"/>
+        <rect x="20" y="86" width="11" height="90" rx="2" fill="var(--gold)"/>
+        <rect x="36" y="112" width="11" height="64" rx="2" fill="var(--accent)"/>
+        <rect x="52" y="66" width="11" height="110" rx="2" fill="var(--gold)"/>
+        <rect x="68" y="136" width="11" height="40" rx="2" fill="var(--accent)"/>
+      </g>
+    </svg>
+  </header>
+
+  <div id="banners"></div>
+
+  <div class="filters" role="search">
+    <div class="frow">
+      <input type="search" id="q" placeholder="Search artist, venue, genre…" aria-label="Search shows">
+      <select id="when" aria-label="When">
+        <option value="any">Any date</option>
+        <option value="tonight">Tonight</option>
+        <option value="weekend">This weekend</option>
+        <option value="week">Next 7 days</option>
+        <option value="month">Next 30 days</option>
+        <option value="pick">Pick dates…</option>
+      </select>
+      <div class="ms" id="ms-venue"></div>
+      <div class="ms" id="ms-area"></div>
+      <div class="ms" id="ms-month"></div>
+      <div class="ms" id="ms-genre"></div>
+    </div>
+    <div class="dates" id="dates" hidden>
+      <label>From <input type="date" id="from"></label>
+      <label>To <input type="date" id="to"></label>
+    </div>
+    <div class="frow">
+      <div class="pills" id="tiers"></div>
+      <span class="sep" aria-hidden="true"></span>
+      <div class="pills" id="quick"></div>
+    </div>
+    <div class="meta">
+      <span class="grow" id="count"></span>
+      <div class="seg" role="group" aria-label="View">
+        <button type="button" data-view="list">List</button><button type="button" data-view="cal">Calendar</button><button type="button" data-view="mine">My calendar</button>
+      </div>
+      <select id="sort" aria-label="Sort">
+        <option value="date">Sort by date</option>
+        <option value="venue">Sort by venue</option>
+        <option value="added">Newest additions first</option>
+        <option value="price">Price, low to high</option>
+      </select>
+      <button class="btn" id="hiddenBtn" type="button" hidden></button>
+      <button class="btn" id="clear" type="button">Clear filters</button>
+      <button class="btn" id="icsAll" type="button" hidden>Add these to calendar</button>
+      <button class="btn primary" id="copy" type="button">Copy list for Excel</button>
+    </div>
+  </div>
+  <textarea id="copybox" hidden aria-label="Copied list (press Ctrl+C, then Esc to close)"></textarea>
+
+  <main id="out" tabindex="-1"></main>
+
+  <footer>
+    <div id="watchlist">
+      <h3>Your watchlist</h3>
+      <div id="watchbody"></div>
+    </div>
+    <div>
+      <h3>Venues covered</h3>
+      <div class="venues" id="venues"></div>
+    </div>
+    <div class="caveats" id="caveats"></div>
+  </footer>
+</div>
+<div class="calmenu" id="calmenu" role="menu" hidden></div>
+<div class="toast" id="toast" role="status" hidden><span id="toastmsg"></span><button type="button" id="toastbtn" hidden></button></div>
+
+<script id="data" type="application/json">__DATA__</script>
+<script id="info" type="application/json">__INFO__</script>
+<script>
+(function () {
+  function iso(d) { return d.getFullYear() + '-' + ('0' + (d.getMonth() + 1)).slice(-2) + '-' + ('0' + d.getDate()).slice(-2); }
+  function parseIso(s) { var p = s.split('-'); return new Date(+p[0], +p[1] - 1, +p[2]); }
+  function addDays(s, n) { var d = parseIso(s); d.setDate(d.getDate() + n); return iso(d); }
+  function dayDiff(a, b) { return Math.round((parseIso(b) - parseIso(a)) / 864e5); }
+  // shows drop off the day after they happen, even between weekly updates
+  var TODAY = iso(new Date()), TOMORROW = addDays(TODAY, 1);
+  var RAW = JSON.parse(document.getElementById('data').textContent);
+  var INFO = JSON.parse(document.getElementById('info').textContent);
+  var VENUES = INFO.venues || {}, WATCH = INFO.watch || [];
+  // the newest "added" date is the most recent refresh that found new shows
+  var LATEST = RAW.reduce(function (m, r) { return r.added && r.added > m ? r.added : m; }, '');
+  var DATA = RAW.filter(function (r) { return r.date >= TODAY; });
+  // reload at midnight so yesterday's shows drop off; the search and filters carry over (see keepSession)
+  setInterval(function () { if (iso(new Date()) !== TODAY) { keepSession(); location.reload(); } }, 60000);
+  var TIERS = [
+    { k: 'all', label: 'All venues' },
+    { k: 'arena', label: 'Arenas & stadiums', short: 'Arenas' },
+    { k: 'hall', label: 'Theatres & halls', short: 'Theatres & halls' },
+    { k: 'club', label: 'Clubs & bars', short: 'Clubs & bars' },
+    { k: 'fest', label: 'Festivals', short: 'Festivals' }
+  ];
+  var MONTHS = ['January','February','March','April','May','June','July','August','September','October','November','December'];
+  var WD = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  var WDF = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+  // per-PC memory (stars, hidden acts, view); the page still works if the browser blocks it
+  var mem = (function () {
+    var ok = true;
+    try { localStorage.setItem('dclmg:test', '1'); localStorage.removeItem('dclmg:test'); } catch (e) { ok = false; }
+    return {
+      get: function (k, d) { if (!ok) return d; try { var v = localStorage.getItem('dclmg:' + k); return v == null ? d : JSON.parse(v); } catch (e) { return d; } },
+      set: function (k, v) { if (!ok) return; try { localStorage.setItem('dclmg:' + k, JSON.stringify(v)); } catch (e) { } }
+    };
+  })();
+  var stars = mem.get('stars', {}), hidden = mem.get('hidden', {});
+  Object.keys(stars).forEach(function (id) { if (!stars[id] || stars[id].d < TODAY) delete stars[id]; });
+  mem.set('stars', stars);
+  // shows pushed onto the guide's own calendar ("My calendar"), kept from the start of this month on
+  var plans = mem.get('plans', {}), MONTH_START = TODAY.slice(0, 8) + '01';
+  Object.keys(plans).forEach(function (id) { if (!plans[id] || plans[id].d < MONTH_START) delete plans[id]; });
+  mem.set('plans', plans);
+
+  // search text: no accents, "&" as "and", punctuation as spaces ("Lenée" finds "lenee")
+  function norm(s) {
+    return String(s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
+      .replace(/&/g, ' and ').replace(/[^a-z0-9]+/g, ' ').trim();
+  }
+  // watchlist terms match whole words, so "Low" doesn't catch "Halloween" and "Yes" doesn't catch "Gravity Espresso"
+  var WATCHN = WATCH.map(function (w) { return { w: w, n: norm(w) }; }).filter(function (x) { return x.n.replace(/ /g, '').length >= 3; });
+
+  DATA.forEach(function (r) {
+    r._d = parseIso(r.date);
+    r._m = r.date.slice(0, 7);
+    r._latest = !!LATEST && r.added === LATEST;
+    var vi = VENUES[r.venue] || {};
+    r._area = vi.area || 'Area not known';
+    r._addr = vi.addr || '';
+    r._akey = norm(r.artist);
+    r._id = r.date + '|' + r._akey + '|' + norm(r.venue);
+    r._hay = norm([r.artist, r.support, r.venue, r.genre, r.gb, r.notes, r._area].join(' '));
+    r._flat = r._hay.replace(/ /g, '');
+    r._words = r._hay.split(' ').filter(function (w, i, a) { return w && a.indexOf(w) === i; });
+    var wh = ' ' + norm(r.artist + ' ' + r.support + ' ' + r.venue) + ' ';
+    r._watch = '';
+    WATCHN.forEach(function (x) { if (!r._watch && wh.indexOf(' ' + x.n + ' ') !== -1) r._watch = x.w; });
+    var nl = (r.notes || '').toLowerCase();
+    r._cancel = /^cancelled/.test(nl);
+    r._sold = /sold\s*out/.test(nl);
+    r._tba = /lineup tba/.test(nl);
+    r._free = r.pmin === 0 && !r.pmax;
+    // "new" is worked out against today, so the badge still expires if the weekly refresh stops
+    r._new = r.added ? dayDiff(r.added, TODAY) <= 7 : !!r.isNew;
+  });
+  DATA.sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (a.time || '99') < (b.time || '99') ? -1 : (a.time || '99') > (b.time || '99') ? 1 : a.artist.localeCompare(b.artist); });
+  var BYID = {}; DATA.forEach(function (r) { BYID[r._id] = r; });
+
+  // Saved shows are keyed date|artist|venue. If a venue gets renamed (venue_aliases, or the sites change the
+  // spelling), re-attach stars and plans by date + artist instead of treating them as dropped.
+  function reattach(saved) {
+    var byDA = {}, changed = false;
+    DATA.forEach(function (r) { byDA[r.date + '|' + r._akey] = r; });
+    Object.keys(saved).forEach(function (id) {
+      if (BYID[id]) return;
+      var r = byDA[saved[id].d + '|' + norm(saved[id].a)];
+      if (r && !saved[r._id]) { saved[r._id] = saved[id]; saved[r._id].v = r.venue; delete saved[id]; changed = true; }
+    });
+    return changed;
+  }
+  if (reattach(stars)) mem.set('stars', stars);
+  if (reattach(plans)) mem.set('plans', plans);
+  // keep two open guide windows in step
+  window.addEventListener('storage', function (e) {
+    if (!e.key || e.key.indexOf('dclmg:') !== 0) return;
+    stars = mem.get('stars', {}); plans = mem.get('plans', {}); hidden = mem.get('hidden', {});
+    render(); banners();
+  });
+
+  function el(tag, cls, text) { var e = document.createElement(tag); if (cls) e.className = cls; if (text != null) e.textContent = text; return e; }
+  function monthLabel(m) { var p = m.split('-'); return MONTHS[+p[1] - 1] + ' ' + p[0]; }
+  function shortDate(s) { var d = parseIso(s); return MONTHS[d.getMonth()].slice(0, 3) + ' ' + d.getDate(); }
+  function dayDate(s) { var d = parseIso(s); return WD[d.getDay()] + ', ' + shortDate(s); }
+  function host(u) { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return 'source'; } }
+  function countBy(fn) { var c = {}; DATA.forEach(function (r) { var k = fn(r); if (k) c[k] = (c[k] || 0) + 1; }); return c; }
+  function plural(n, w) { return n + ' ' + w + (n === 1 ? '' : 's'); }
+  function fmtTime(t) { if (!t) return ''; var p = t.split(':'), h = +p[0]; return (h % 12 || 12) + ':' + p[1] + (h < 12 ? ' AM' : ' PM'); }
+  function money(n) { return '$' + (Math.round(n * 100) % 100 ? n.toFixed(2) : String(Math.round(n))); }
+  function fmtPrice(r) {
+    if (r.pmin == null) return '';
+    if (r.pmin === 0 && !r.pmax) return 'Free';
+    if (r.pmax == null || r.pmax === r.pmin) return money(r.pmin);
+    return money(r.pmin) + '–' + money(r.pmax);
+  }
+
+  var SVGNS = 'http://www.w3.org/2000/svg';
+  function svg(paths, cls) {
+    var s = document.createElementNS(SVGNS, 'svg');
+    s.setAttribute('viewBox', '0 0 24 24'); s.setAttribute('aria-hidden', 'true'); if (cls) s.setAttribute('class', cls);
+    s.innerHTML = paths;
+    return s;
+  }
+  var UI = {
+    star: '<path d="M12 2.8l2.8 5.8 6.4.9-4.6 4.5 1.1 6.3L12 17.3l-5.7 3 1.1-6.3-4.6-4.5 6.4-.9z"/>',
+    cal: '<rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4M12 12.5v5M9.5 15h5"/>',
+    spotify: '<circle cx="12" cy="12" r="9.5"/><path d="M7 9.6c3.5-1 7-.6 10 1.1"/><path d="M7.6 12.8c2.8-.8 5.6-.4 8 .9"/><path d="M8.2 15.8c2.2-.5 4.2-.3 6 .6"/>',
+    youtube: '<rect x="2.5" y="5.5" width="19" height="13" rx="3.5"/><path d="M10 9.2v5.6l4.8-2.8z"/>',
+    hide: '<path d="M3 3l18 18"/><path d="M10.6 5.1A10 10 0 0 1 12 5c5 0 9 4.5 10 7-.4 1-1.2 2.3-2.4 3.5M6.6 6.6C4.3 8 2.7 10.2 2 12c1 2.5 5 7 10 7 1.6 0 3-.4 4.3-1"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2"/>',
+    show: '<path d="M2 12c1-2.5 5-7 10-7s9 4.5 10 7c-1 2.5-5 7-10 7S3 14.5 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    pin: '<path d="M12 21s-7-6.2-7-11.5a7 7 0 0 1 14 0C19 14.8 12 21 12 21z"/><circle cx="12" cy="9.5" r="2.5"/>',
+    eye: '<path d="M2 12c1-2.5 5-7 10-7s9 4.5 10 7c-1 2.5-5 7-10 7S3 14.5 2 12z"/><circle cx="12" cy="12" r="3"/>',
+    calcheck: '<rect x="3" y="4.5" width="18" height="16" rx="2"/><path d="M3 9.5h18M8 2.5v4M16 2.5v4"/><path d="M8.5 14.5l2.5 2.5 4.5-4.5"/>',
+    ext: '<path d="M14 4h6v6"/><path d="M20 4l-9 9"/><path d="M18 14v5a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h5"/>',
+    download: '<path d="M12 3v12"/><path d="M7 10l5 5 5-5"/><path d="M4 20h16"/>'
+  };
+
+  // one line icon per genre group (24x24, drawn with the current text colour)
+  var NOTE = '<circle cx="8" cy="18" r="3.5"/><path d="M11.5 18V3l7 3.5"/>';
+  var ICONS = {
+    'Rock': '<rect x="5" y="2.5" width="14" height="19" rx="2"/><circle cx="12" cy="14.5" r="4"/><circle cx="12" cy="14.5" r="1"/><circle cx="12" cy="6.5" r="1.4"/>',
+    'Indie': '<rect x="2" y="5" width="20" height="14" rx="2"/><circle cx="8" cy="11" r="2"/><circle cx="16" cy="11" r="2"/><path d="M10 11h4"/><path d="M6 19l1.2-3h9.6l1.2 3"/>',
+    'Metal': '<path d="M16 20a2 2 0 0 0 1.6-3.2 8 8 0 1 0-11.2 0A2 2 0 0 0 8 20"/><path d="M8 20v2h8v-2"/><circle cx="9" cy="12" r="1.3"/><circle cx="15" cy="12" r="1.3"/><path d="M12 15.5l-.8 1.5h1.6z"/>',
+    'Punk': '<path d="M13 2 4 14h7l-1 8 9-12h-7l1-8z"/>',
+    'EDM / DJ': '<path d="M3 18v-6a9 9 0 0 1 18 0v6"/><rect x="2.5" y="14" width="5" height="7" rx="1.5"/><rect x="16.5" y="14" width="5" height="7" rx="1.5"/>',
+    'Hip-hop, R&B & soul': '<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v1a7 7 0 0 1-14 0v-1"/><path d="M12 18v4"/><path d="M8.5 22h7"/>',
+    'Country': '<path d="M2 15.5c2.2 2.4 6 3.5 10 3.5s7.8-1.1 10-3.5"/><path d="M6.2 16.6 7.6 8c.3-1.6 2.1-2.3 3.4-1.3l1 .8 1-.8c1.3-1 3.1-.3 3.4 1.3l1.4 8.6"/><path d="M7 13.5c3 .9 7 .9 10 0"/>',
+    'Jazz': '<path d="M7 3h5"/><path d="M10 3v12a4 4 0 0 0 8 0v-4"/><path d="M15.5 9.5 21 11"/><circle cx="10" cy="8" r=".8"/><circle cx="10" cy="11.5" r=".8"/>',
+    'Blues': '<rect x="2" y="8" width="20" height="8" rx="2"/><path d="M5.5 11h.01M9 11h.01M12.5 11h.01M16 11h.01M19 11h.01M5.5 13.5h.01M9 13.5h.01M12.5 13.5h.01M16 13.5h.01M19 13.5h.01"/>',
+    'Classical, choral & gospel': '<path d="M18.5 8c-1.4 0-2.6-.8-3.2-2A6.9 6.9 0 0 0 2 9v11a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-8.5C22 9.6 20.4 8 18.5 8z"/><path d="M2 14h20"/><path d="M6 14v4M10 14v4M14 14v4M18 14v4"/>',
+    'Folk & roots': '<circle cx="9" cy="15" r="6"/><circle cx="9" cy="15" r="2"/><path d="m13.3 10.7 6.2-6.2"/><path d="m18 2 4 4"/>',
+    'World & Latin': '<circle cx="12" cy="12" r="10"/><path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20"/><path d="M2 12h20"/>',
+    'Pop': '<path d="M12 2.5l2.9 6 6.6.9-4.8 4.6 1.2 6.5L12 17.4l-5.9 3.1 1.2-6.5-4.8-4.6 6.6-.9z"/>',
+    'Festival': '<path d="M3.5 21 12 4l8.5 17"/><path d="M15.5 21 12 15l-3.5 6"/><path d="M2 21h20"/><path d="M12 4V1.5l3 1.2-3 1.2"/>',
+    'Tribute': '<circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="2.5"/><path d="M12 5.5a6.5 6.5 0 0 1 6.5 6.5"/>',
+    'Other': NOTE
+  };
+  function genreIcon(gb) { return svg(ICONS[gb] || NOTE, 'gi'); }
+
+  // ---------------------------------------------------------------- header
+  var venueCount = countBy(function (r) { return r.venue; });
+  var newCount = DATA.filter(function (r) { return r._new; }).length;
+  document.getElementById('range').textContent = 'Calgary, AB · ' + INFO.rangeLabel;
+  document.getElementById('lede').textContent = INFO.lede;
+  var stats = document.getElementById('stats');
+  [[DATA.length, 'shows listed'], [Object.keys(venueCount).length, 'venues'], [newCount, 'new this week'], [INFO.checked, '']].forEach(function (s) {
+    var d = el('div');
+    if (s[1]) { d.appendChild(el('b', null, s[0])); d.appendChild(el('span', null, s[1])); } else { d.appendChild(el('span', null, 'Updated ' + s[0])); }
+    stats.appendChild(d);
+  });
+
+  // ---------------------------------------------------------------- state
+  var state = { q: '', tier: 'all', quick: '', when: 'any', from: '', to: '', showHidden: false, view: mem.get('view', 'list'), sort: mem.get('sort', 'date') };
+  if (['list', 'cal', 'mine'].indexOf(state.view) === -1) state.view = 'list';
+  if (['date', 'venue', 'added', 'price'].indexOf(state.sort) === -1) state.sort = 'date';
+
+  // multi-select dropdowns: nothing ticked means "all"
+  var openMs = null;
+  function MultiSelect(rootId, o) {
+    var root = document.getElementById(rootId), selected = {}, boxes = [];
+    var btn = el('button', 'ms-btn'); btn.type = 'button'; btn.id = rootId + '-btn';
+    btn.setAttribute('aria-haspopup', 'true'); btn.setAttribute('aria-expanded', 'false');
+    var panel = el('div', 'ms-panel'); panel.hidden = true; panel.setAttribute('role', 'group'); panel.setAttribute('aria-label', o.allLabel);
+    var search = null;
+    if (o.searchable) {
+      search = el('input'); search.type = 'search'; search.id = rootId + '-search'; search.placeholder = 'Find ' + o.plural + '…';
+      search.setAttribute('aria-label', 'Find ' + o.plural); panel.appendChild(search);
+    }
+    var acts = el('div', 'ms-actions');
+    var allB = el('button', null, o.searchable ? 'Select shown' : 'Select all'); allB.type = 'button';
+    var noneB = el('button', null, 'Clear'); noneB.type = 'button';
+    acts.appendChild(allB); acts.appendChild(noneB); panel.appendChild(acts);
+    var list = el('div', 'ms-list'); panel.appendChild(list);
+    var empty = el('div', 'ms-empty', 'No matches'); empty.hidden = true; panel.appendChild(empty);
+    o.items.forEach(function (it, i) {
+      var lab = el('label'); var cb = el('input'); cb.type = 'checkbox'; cb.value = it[0]; cb.id = rootId + '-' + i;
+      lab.appendChild(cb); if (o.icon) lab.appendChild(o.icon(it[0]));
+      lab.appendChild(el('span', 'lbl', it[1])); lab.appendChild(el('span', 'n', String(it[2])));
+      cb.addEventListener('change', function () { if (cb.checked) selected[it[0]] = true; else delete selected[it[0]]; sync(); o.onChange(); });
+      list.appendChild(lab); boxes.push({ cb: cb, lab: lab, text: it[1].toLowerCase(), label: it[1] });
+    });
+    root.appendChild(btn); root.appendChild(panel);
+
+    function keys() { return Object.keys(selected); }
+    function sync() {
+      var k = keys();
+      boxes.forEach(function (b) { b.cb.checked = !!selected[b.cb.value]; });
+      if (!k.length) btn.textContent = o.allLabel;
+      else if (k.length === 1) btn.textContent = boxes.filter(function (b) { return b.cb.value === k[0]; })[0].label;
+      else btn.textContent = k.length + ' ' + o.plural;
+      btn.classList.toggle('active', k.length > 0);
+    }
+    function filterList() {
+      var q = search ? search.value.trim().toLowerCase() : '', shown = 0;
+      boxes.forEach(function (b) { var hit = !q || b.text.indexOf(q) !== -1; b.lab.hidden = !hit; if (hit) shown++; });
+      empty.hidden = shown > 0;
+    }
+    function open() {
+      if (openMs && openMs !== api) openMs.close();
+      panel.hidden = false; btn.setAttribute('aria-expanded', 'true'); openMs = api;
+      panel.classList.remove('right');
+      if (panel.getBoundingClientRect().right > window.innerWidth - 8) panel.classList.add('right');
+      if (search) search.focus();
+    }
+    function close() { panel.hidden = true; btn.setAttribute('aria-expanded', 'false'); if (openMs === api) openMs = null; }
+    btn.addEventListener('click', function () { if (panel.hidden) open(); else close(); });
+    if (search) search.addEventListener('input', filterList);
+    allB.addEventListener('click', function () { boxes.forEach(function (b) { if (!b.lab.hidden) selected[b.cb.value] = true; }); sync(); o.onChange(); });
+    noneB.addEventListener('click', function () { selected = {}; sync(); o.onChange(); });
+    panel.addEventListener('keydown', function (e) { if (e.key === 'Escape') { close(); btn.focus(); } });
+
+    var api = {
+      root: root, close: close,
+      has: function (v) { var k = keys(); return !k.length || !!selected[v]; },
+      keys: keys,
+      // only values that are still in the list (a restored filter can name a venue that has since dropped off)
+      set: function (vals) { selected = {}; vals.forEach(function (v) { if (boxes.some(function (b) { return b.cb.value === v; })) selected[v] = true; }); sync(); },
+      clear: function () { selected = {}; if (search) search.value = ''; filterList(); sync(); }
+    };
+    sync();
+    return api;
+  }
+  document.addEventListener('click', function (e) { if (openMs && !openMs.root.contains(e.target)) openMs.close(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && openMs) openMs.close(); });
+
+  var months = countBy(function (r) { return r._m; }), genres = countBy(function (r) { return r.gb; }), areas = countBy(function (r) { return r._area; });
+  var msVenue = MultiSelect('ms-venue', {
+    allLabel: 'All venues', plural: 'venues', searchable: true, onChange: function () { onFilter(); },
+    items: Object.keys(venueCount).sort(function (a, b) { return a.localeCompare(b); }).map(function (v) { return [v, v, venueCount[v]]; })
+  });
+  var msArea = MultiSelect('ms-area', {
+    allLabel: 'All areas', plural: 'areas', onChange: function () { onFilter(); },
+    items: Object.keys(areas).sort(function (a, b) {
+      // named neighbourhoods first, then the quadrants, then the rest
+      function rank(x) { return /Calgary$/.test(x) ? (x === 'Outside Calgary' ? 2 : 1) : (x === 'Area not known' ? 3 : 0); }
+      return rank(a) - rank(b) || a.localeCompare(b);
+    }).map(function (a) { return [a, a, areas[a]]; })
+  });
+  var msMonth = MultiSelect('ms-month', {
+    allLabel: 'All months', plural: 'months', onChange: function () { onFilter(); },
+    items: Object.keys(months).sort().map(function (m) { return [m, monthLabel(m), months[m]]; })
+  });
+  var msGenre = MultiSelect('ms-genre', {
+    allLabel: 'All genres', plural: 'genres', icon: genreIcon, onChange: function () { onFilter(); },
+    items: Object.keys(genres).sort().map(function (g) { return [g, g, genres[g]]; })
+  });
+
+  // venue-size pills
+  var tierWrap = document.getElementById('tiers');
+  TIERS.forEach(function (t) {
+    var b = el('button', 'tier-btn'); b.type = 'button'; b.dataset.k = t.k;
+    if (t.k !== 'all') b.appendChild(el('span', 'dot ' + t.k));
+    var n = t.k === 'all' ? DATA.length : DATA.filter(function (r) { return r.tier === t.k; }).length;
+    b.appendChild(document.createTextNode(t.label + ' · ' + n));
+    b.addEventListener('click', function () { state.tier = t.k; onFilter(); });
+    tierWrap.appendChild(b);
+  });
+
+  // compact title bar: slides in once the big header has scrolled off; its colour key doubles as a venue-size filter
+  var brand = document.getElementById('brand'), headerEl = document.querySelector('header.top'), legendWrap = document.getElementById('legend');
+  function brandFull() { return Math.ceil(brand.getBoundingClientRect().height) + 5; }   // + the red and gold stripe
+  function setBrand(on) {
+    brand.classList.toggle('on', on); brand.setAttribute('aria-hidden', String(!on));
+    document.documentElement.style.setProperty('--top-off', on ? brandFull() + 'px' : '0px');
+  }
+  var brandOn = null;
+  function checkBrand() {
+    var on = headerEl.getBoundingClientRect().bottom < 0;
+    if (on !== brandOn) { brandOn = on; setBrand(on); }
+  }
+  window.addEventListener('scroll', checkBrand, { passive: true });
+  window.addEventListener('resize', function () { brandOn = null; checkBrand(); });
+  checkBrand();
+  document.getElementById('brandHome').addEventListener('click', function () { window.scrollTo({ top: 0, behavior: 'smooth' }); });
+  // scroll so the list starts just below the title bar and (when it sticks) the filter rail
+  function scrollToList() {
+    var f = document.querySelector('.filters'), sticky = getComputedStyle(f).position === 'sticky';
+    var top = document.getElementById('out').getBoundingClientRect().top + window.pageYOffset - brandFull() - (sticky ? f.offsetHeight : 0) - 8;
+    window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+  }
+  TIERS.forEach(function (t) {
+    if (t.k === 'all') return;
+    var b = el('button'); b.type = 'button'; b.dataset.k = t.k; b.title = t.label + ': show only these (click again for all)';
+    b.setAttribute('aria-label', t.label);
+    b.appendChild(el('span', 'dot ' + t.k)); b.appendChild(el('span', 'lt', t.short));
+    b.addEventListener('click', function () {
+      state.tier = state.tier === t.k ? 'all' : t.k;
+      if (state.view === 'mine') { state.view = 'list'; mem.set('view', 'list'); }
+      render(); scrollToList();
+    });
+    legendWrap.appendChild(b);
+  });
+
+  // quick picks: one at a time; click again to turn off
+  var QUICK = [
+    { k: 'mine', label: 'My shows', icon: UI.star, test: function (r) { return !!stars[r._id]; }, tip: 'Shows you starred on this computer', always: true },
+    { k: 'watch', label: 'Watchlist', icon: UI.eye, test: function (r) { return !!r._watch; }, tip: 'Shows that mention an artist or venue on your watchlist' },
+    { k: 'week', label: 'New this week', test: function (r) { return r._new; }, tip: 'Shows first listed in the last 7 days' },
+    { k: 'latest', label: LATEST && LATEST === INFO.run ? 'Added in last refresh' : 'Added ' + (LATEST ? shortDate(LATEST) : ''),
+      test: function (r) { return r._latest; }, tip: LATEST ? 'Shows the ' + shortDate(LATEST) + ' refresh found that were not on the list before' : '' },
+    { k: 'free', label: 'Free', test: function (r) { return r._free; }, tip: 'Free or no-cover shows (where the listing says so)' },
+    { k: 'gone', label: 'May be cancelled', cls: 'gone', test: function (r) { return r.gone; }, tip: 'Shows the listing sites have stopped showing; check before you go' }
+  ];
+  var QK = {}; QUICK.forEach(function (q) { QK[q.k] = q; });
+  var quickWrap = document.getElementById('quick');
+  QUICK.forEach(function (q) {
+    var b = el('button', 'tier-btn q' + (q.cls ? ' ' + q.cls : '')); b.type = 'button'; b.title = q.tip; b.dataset.q = q.k;
+    if (q.icon) b.appendChild(svg(q.icon));
+    q.txt = document.createTextNode(''); b.appendChild(q.txt);
+    b.addEventListener('click', function () { state.quick = state.quick === q.k ? '' : q.k; onFilter(); });
+    q.btn = b; quickWrap.appendChild(b);
+  });
+  // with an empty watchlist, the pill explains how to set one up instead
+  var setupBtn = el('button', 'tier-btn ghost'); setupBtn.type = 'button'; setupBtn.appendChild(svg(UI.eye)); setupBtn.appendChild(document.createTextNode('Set up a watchlist'));
+  setupBtn.addEventListener('click', function () {
+    var w = document.getElementById('watchlist'); w.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    w.classList.add('flash'); setTimeout(function () { w.classList.remove('flash'); }, 1600);
+  });
+  if (!WATCHN.length) quickWrap.insertBefore(setupBtn, QK.watch.btn.nextSibling);
+  function visible(r) { return state.showHidden || !hidden[r._akey]; }
+  function syncQuick() {
+    QUICK.forEach(function (q) {
+      var n = DATA.filter(function (r) { return visible(r) && q.test(r); }).length;
+      q.txt.nodeValue = q.label + ' · ' + n;
+      q.btn.hidden = !(n || q.always || state.quick === q.k) || (q.k === 'watch' && !WATCHN.length);
+      q.btn.setAttribute('aria-pressed', String(state.quick === q.k));
+    });
+  }
+
+  // ---------------------------------------------------------------- filtering
+  function whenRange() {
+    var d = new Date().getDay();
+    switch (state.when) {
+      case 'tonight': return [TODAY, TODAY];
+      case 'weekend': return d === 0 ? [TODAY, TODAY] : d >= 5 ? [TODAY, addDays(TODAY, 7 - d)] : [addDays(TODAY, 5 - d), addDays(TODAY, 7 - d)];
+      case 'week': return [TODAY, addDays(TODAY, 6)];
+      case 'month': return [TODAY, addDays(TODAY, 29)];
+      case 'pick':
+        var a = state.from || '0000-00-00', b = state.to || '9999-12-31';
+        return a <= b ? [a, b] : [b, a];
+    }
+    return null;
+  }
+  // edit distance with an early exit once it passes max
+  function lev(a, b, max) {
+    if (Math.abs(a.length - b.length) > max) return max + 1;
+    var prev = [], i, j;
+    for (j = 0; j <= b.length; j++) prev[j] = j;
+    for (i = 1; i <= a.length; i++) {
+      var cur = [i], best = i;
+      for (j = 1; j <= b.length; j++) {
+        cur[j] = Math.min(prev[j] + 1, cur[j - 1] + 1, prev[j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+        if (cur[j] < best) best = cur[j];
+      }
+      if (best > max) return max + 1;
+      prev = cur;
+    }
+    return prev[b.length];
+  }
+  // A search word matches exactly or inside a word. Only a word found nowhere in the list (a likely typo, 4+ letters)
+  // is matched with a typo or two, and only against words of 4+ letters, so "band" doesn't turn into "and".
+  function exactHit(r, t) { return r._hay.indexOf(t) !== -1 || r._flat.indexOf(t) !== -1; }
+  function fuzzyHit(r, t) {
+    var max = t.length >= 8 ? 2 : 1;
+    for (var i = 0; i < r._words.length; i++) {
+      var w = r._words[i];
+      if (w.length < 4) continue;
+      if (lev(t, w, max) <= max) return true;
+      if (t.length >= 5 && w.length > t.length && lev(t, w.slice(0, t.length), max) <= max) return true;
+    }
+    return false;
+  }
+  var tokMemo = { q: null, toks: [] };
+  function searchTokens() {
+    if (tokMemo.q !== state.q) {
+      tokMemo.q = state.q;
+      tokMemo.toks = norm(state.q).split(' ').filter(Boolean).map(function (t) {
+        return { t: t, fuzzy: t.length >= 4 && !DATA.some(function (r) { return exactHit(r, t); }) };
+      });
+    }
+    return tokMemo.toks;
+  }
+  function filtered() {
+    var toks = searchTokens(), range = whenRange(), qk = state.quick && QK[state.quick];
+    return DATA.filter(function (r) {
+      if (!visible(r)) return false;
+      if (state.tier !== 'all' && r.tier !== state.tier) return false;
+      if (qk && !qk.test(r)) return false;
+      if (range && (r.date < range[0] || r.date > range[1])) return false;
+      if (!msVenue.has(r.venue) || !msArea.has(r._area) || !msMonth.has(r._m) || !msGenre.has(r.gb)) return false;
+      for (var i = 0; i < toks.length; i++) if (!(toks[i].fuzzy ? fuzzyHit(r, toks[i].t) : exactHit(r, toks[i].t))) return false;
+      return true;
+    });
+  }
+  // any filter change from My calendar (where filters don't apply) goes back to the list
+  function onFilter() {
+    if (state.view === 'mine') { state.view = 'list'; mem.set('view', 'list'); }
+    render();
+  }
+  // where keyboard focus goes back to after a re-render (the button that was used)
+  var refocus = null;
+
+  // ---------------------------------------------------------------- actions on a show
+  function saveStars() { mem.set('stars', stars); }
+  function toggleStar(r, b) {
+    var was = stars[r._id];
+    if (was) delete stars[r._id]; else stars[r._id] = { d: r.date, a: r.artist, v: r.venue };
+    saveStars();
+    if (b) { b.setAttribute('aria-pressed', String(!!stars[r._id])); b.title = stars[r._id] ? 'Starred (click to remove)' : 'Star this show'; }
+    if (state.quick === 'mine' || state.view === 'cal') { refocus = { id: r._id, cls: 'star' }; render(); } else { syncQuick(); banners(); }
+    if (was) toast('Unstarred ' + r.artist + '.', 'Undo', function () { stars[r._id] = was; saveStars(); render(); });
+  }
+  function hideAct(r) {
+    var was = hidden[r._akey];
+    if (was) delete hidden[r._akey]; else hidden[r._akey] = r.artist;
+    mem.set('hidden', hidden);
+    render();
+    if (!was) toast('Hid every show by ' + r.artist + '.', 'Undo', function () { delete hidden[r._akey]; mem.set('hidden', hidden); render(); });
+  }
+
+  // My calendar: the guide's own calendar, kept on this PC
+  function savePlans() { mem.set('plans', plans); }
+  function openMine() { state.view = 'mine'; mem.set('view', 'mine'); render(); scrollToList(); }
+  function togglePlan(r) {
+    refocus = { id: r._id, cls: 'ics' };
+    if (plans[r._id]) {
+      var was = plans[r._id];
+      delete plans[r._id]; savePlans(); render(); banners();
+      toast('Took ' + r.artist + ' off My calendar.', 'Undo', function () { plans[r._id] = was; savePlans(); render(); banners(); });
+      return;
+    }
+    var clash = Object.keys(plans).filter(function (id) { return plans[id].d === r.date; }).map(function (id) { return plans[id].a; });
+    plans[r._id] = { d: r.date, t: r.time || '', a: r.artist, v: r.venue, s: r.source || '' };
+    savePlans(); render(); banners();
+    toast(clash.length ? 'Added. You already have ' + clash.join(' and ') + ' on ' + dayDate(r.date) + '.' : 'Added ' + r.artist + ' to My calendar (' + dayDate(r.date) + ').',
+      state.view === 'mine' ? null : 'Open My calendar', openMine);
+  }
+
+  // Google and Outlook. On the PC, Outlook gets a calendar file (.ics) that any calendar program opens; the online
+  // copy of the page can't save files, so there Outlook opens on the web instead.
+  var FRAMED = !!(window.claude && window.claude.use);
+  function calStamp(x) { return iso(x).replace(/-/g, '') + 'T' + ('0' + x.getHours()).slice(-2) + ('0' + x.getMinutes()).slice(-2) + '00'; }
+  function startOf(r) { var p = r.time.split(':'), s = new Date(r._d.getTime()); s.setHours(+p[0], +p[1]); return s; }
+  function calSpan(r) {
+    if (!r.time) return [r.date.replace(/-/g, ''), addDays(r.date, 1).replace(/-/g, '')];
+    var s = startOf(r);
+    return [calStamp(s), calStamp(new Date(s.getTime() + 3 * 3600e3))];
+  }
+  function calPlace(r) { return [r.venue, r._addr, 'Calgary AB'].filter(Boolean).join(', '); }
+  function calDetails(r) { return [r.support ? 'With ' + r.support : '', r.notes, fmtPrice(r), r.source].filter(Boolean).join('\n'); }
+  function gcalUrl(r) {
+    var sp = calSpan(r);
+    return 'https://calendar.google.com/calendar/render?action=TEMPLATE&text=' + encodeURIComponent(r.artist) + '&dates=' + sp[0] + '/' + sp[1] +
+      (r.time ? '&ctz=America/Edmonton' : '') + '&location=' + encodeURIComponent(calPlace(r)) + '&details=' + encodeURIComponent(calDetails(r));
+  }
+  // the exact moment of a Calgary clock time, whatever time zone the viewer's PC is set to (Outlook on the web wants UTC)
+  function calgaryInstant(dateS, timeS) {
+    var p = dateS.split('-'), t = timeS.split(':'), want = Date.UTC(+p[0], +p[1] - 1, +p[2], +t[0], +t[1]), guess = want;
+    try {
+      var fmt = new Intl.DateTimeFormat('en-US', { timeZone: 'America/Edmonton', hourCycle: 'h23', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
+      for (var i = 0; i < 2; i++) {
+        var w = {}; fmt.formatToParts(new Date(guess)).forEach(function (x) { w[x.type] = x.value; });
+        guess += want - Date.UTC(+w.year, +w.month - 1, +w.day, +w.hour % 24, +w.minute);
+      }
+      return new Date(guess);
+    } catch (e) { return startOf({ time: timeS, _d: parseIso(dateS) }); }
+  }
+  function outlookUrl(r, site) {
+    var start, end;
+    if (r.time) { var s = calgaryInstant(r.date, r.time); start = s.toISOString(); end = new Date(s.getTime() + 3 * 3600e3).toISOString(); }
+    else { start = r.date; end = addDays(r.date, 1); }
+    return 'https://' + site + '/calendar/0/deeplink/compose?path=%2Fcalendar%2Faction%2Fcompose&rru=addevent&subject=' + encodeURIComponent(r.artist) +
+      '&startdt=' + encodeURIComponent(start) + '&enddt=' + encodeURIComponent(end) + (r.time ? '' : '&allday=true') +
+      '&location=' + encodeURIComponent(calPlace(r)) + '&body=' + encodeURIComponent(calDetails(r));
+  }
+
+  // the menu under a show's calendar button
+  var menu = document.getElementById('calmenu'), menuFor = null;
+  function closeMenu() { if (menu.hidden) return; menu.hidden = true; if (menuFor) menuFor.setAttribute('aria-expanded', 'false'); menuFor = null; }
+  function menuItem(icon, label, sub, href) {
+    var m = el(href ? 'a' : 'button', 'mi'); m.setAttribute('role', 'menuitem');
+    if (href) { m.href = href; m.target = '_blank'; m.rel = 'noopener'; } else m.type = 'button';
+    m.appendChild(svg(icon));
+    var t = el('span', null, label); if (sub) t.appendChild(el('small', null, sub)); m.appendChild(t);
+    m.addEventListener('click', closeMenu);
+    return m;
+  }
+  function openCalMenu(r, btn) {
+    if (menuFor === btn) { closeMenu(); return; }
+    closeMenu(); menu.textContent = '';
+    var on = !!plans[r._id];
+    var mine = menuItem(on ? UI.calcheck : UI.cal, on ? 'On My calendar' : 'Add to My calendar', on ? 'Click to take it off' : 'Kept here in the guide, on this PC');
+    if (on) mine.classList.add('on');
+    mine.addEventListener('click', function () { togglePlan(r); });
+    menu.appendChild(mine);
+    menu.appendChild(el('div', 'mh', 'Also add to'));
+    menu.appendChild(menuItem(UI.ext, 'Google Calendar', 'Opens a filled-in event', gcalUrl(r)));
+    if (FRAMED) {
+      menu.appendChild(menuItem(UI.ext, 'Outlook (work or school)', 'Opens Outlook on the web', outlookUrl(r, 'outlook.office.com')));
+      menu.appendChild(menuItem(UI.ext, 'Outlook.com', 'Personal Outlook on the web', outlookUrl(r, 'outlook.live.com')));
+    } else {
+      var ol = menuItem(UI.download, 'Outlook', 'Saves a calendar file; open it to add the show');
+      ol.addEventListener('click', function () { addToCalendar([r], r.date + '-' + fileSafe(r.artist) + '.ics'); });
+      menu.appendChild(ol);
+    }
+    menu.hidden = false; menuFor = btn; btn.setAttribute('aria-expanded', 'true');
+    var b = btn.getBoundingClientRect(), mw = menu.offsetWidth, mh = menu.offsetHeight;
+    var left = Math.max(8, Math.min(b.right - mw, innerWidth - mw - 8)), top = b.bottom + 6;
+    if (top + mh > innerHeight - 8) top = Math.max(8, b.top - mh - 6);
+    menu.style.left = left + 'px'; menu.style.top = top + 'px';
+    mine.focus();
+  }
+  document.addEventListener('click', function (e) {
+    if (!menu.hidden && !menu.contains(e.target) && !(menuFor && menuFor.contains(e.target))) closeMenu();
+  }, true);
+  window.addEventListener('scroll', closeMenu, { passive: true });
+  window.addEventListener('resize', closeMenu);
+  menu.addEventListener('keydown', function (e) {
+    var items = Array.prototype.slice.call(menu.querySelectorAll('.mi')), i = items.indexOf(document.activeElement);
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); items[(i + (e.key === 'ArrowDown' ? 1 : items.length - 1)) % items.length].focus(); }
+    else if (e.key === 'Escape') { var b = menuFor; closeMenu(); if (b) b.focus(); }
+  });
+  function icsText(rows) {
+    function esc(s) { return String(s || '').replace(/\\/g, '\\\\').replace(/;/g, '\\;').replace(/,/g, '\\,').replace(/\r?\n/g, '\\n'); }
+    // lines longer than 75 bytes are folded; count UTF-8 bytes and never split a character
+    var enc = window.TextEncoder ? new TextEncoder() : null;
+    function fold(line) {
+      var out = '', n = 0;
+      for (var ch of line) {
+        var b = enc ? enc.encode(ch).length : (ch.charCodeAt(0) < 128 ? 1 : 3);
+        if (n + b > 74) { out += '\r\n '; n = 1; }
+        out += ch; n += b;
+      }
+      return out;
+    }
+    var now = new Date(), stamp = now.toISOString().replace(/[-:]/g, '').replace(/\.\d+/, '');
+    var L = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Dans Calgary Live Music Guide//EN', 'CALSCALE:GREGORIAN', 'METHOD:PUBLISH'];
+    rows.forEach(function (r) {
+      var d = r.date.replace(/-/g, '');
+      L.push('BEGIN:VEVENT', 'UID:' + d + '-' + r._akey.replace(/ /g, '') .slice(0, 40) + '-' + norm(r.venue).replace(/ /g, '').slice(0, 30) + '@dans-calgary-live-music', 'DTSTAMP:' + stamp);
+      // timed shows use floating local time, so calendars place them at that clock time (Calgary); others are all-day
+      var sp = calSpan(r);
+      if (r.time) L.push('DTSTART:' + sp[0], 'DTEND:' + sp[1]);
+      else L.push('DTSTART;VALUE=DATE:' + sp[0], 'DTEND;VALUE=DATE:' + sp[1]);
+      L.push('SUMMARY:' + esc(r.artist + (r._cancel ? ' (CANCELLED)' : '')), 'LOCATION:' + esc(calPlace(r)), 'DESCRIPTION:' + esc(calDetails(r)));
+      if (r.source) L.push('URL:' + r.source);
+      L.push('END:VEVENT');
+    });
+    L.push('END:VCALENDAR');
+    return L.map(fold).join('\r\n') + '\r\n';
+  }
+  function download(name, text, type) {
+    var blob = new Blob([text], { type: type }), url = URL.createObjectURL(blob), a = el('a');
+    a.href = url; a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(function () { URL.revokeObjectURL(url); }, 4000);
+  }
+  function fileSafe(s) { return norm(s).replace(/ /g, '-').slice(0, 50) || 'show'; }
+  function addToCalendar(rows, name) {
+    download(name, icsText(rows), 'text/calendar');
+    toast(rows.length === 1 ? 'Calendar file saved. Open it to add the show to Outlook or your calendar.' : 'Calendar file with ' + rows.length + ' shows saved. Open it to add them.');
+  }
+
+  // ---------------------------------------------------------------- rows
+  function iconBtn(cls, icon, label) { var b = el('button', 'ib ' + cls); b.type = 'button'; b.title = label; b.setAttribute('aria-label', label); b.appendChild(svg(icon)); return b; }
+  function iconLink(icon, label, href) { var a = el('a', 'ib'); a.href = href; a.target = '_blank'; a.rel = 'noopener'; a.title = label; a.setAttribute('aria-label', label); a.appendChild(svg(icon)); return a; }
+  function buildRow(r, showDate) {
+    var row = el('div', 'row'); row.dataset.id = r._id;
+    if (hidden[r._akey]) row.classList.add('is-hidden');
+    var gic = el('div', 'gicon'); gic.title = r.gb; gic.appendChild(genreIcon(r.gb)); row.appendChild(gic);
+
+    var act = el('div', 'act');
+    var a = el('div', 'artist', r.artist);
+    if (r._cancel) { a.appendChild(el('span', 'pill cancel', 'Cancelled')); row.classList.add('cancelled'); }
+    else if (r._sold) a.appendChild(el('span', 'pill sold', 'Sold out'));
+    else if (r._tba) a.appendChild(el('span', 'pill tba', 'Lineup TBA'));
+    if (r.gone) { var g = el('span', 'pill gone', 'May be cancelled'); g.title = 'The listing sites have stopped showing this. Check the event page before you go.'; a.appendChild(g); }
+    if (r._new || r._latest) a.appendChild(el('span', 'pill new', 'New'));
+    if (r._watch) { var w = el('span', 'pill watch', 'Watching'); w.title = 'On your watchlist: ' + r._watch; a.appendChild(w); }
+    if (plans[r._id]) a.appendChild(el('span', 'pill plan', 'On my calendar'));
+    act.appendChild(a);
+    if (r.support) act.appendChild(el('div', 'support', 'with ' + r.support));
+    var noteText = (r.notes || '').replace(/sold\s*out[.;,]?\s*/i, '').replace(/^cancelled[.;,]?\s*/i, '').trim();
+    if (r.time) {
+      // the start time gets its own line below, so drop it from the notes when it stands alone there ("...; 8:00 PM")
+      var tp = r.time.split(':'), h12 = (+tp[0] % 12) || 12, mm = tp[1] === '00' ? '(?::00)?' : ':' + tp[1];
+      noteText = noteText.replace(new RegExp('(^|[;,]\\s*)(?:show\\s*|starts?\\s*(?:at\\s*)?)?' + h12 + mm + '\\s*[ap]\\.?m\\.?(?=\\s*(?:$|[;,]))', 'i'), '$1')
+        .replace(/^[;,\s]+|[;,\s]+$/g, '');
+    }
+    if (noteText) act.appendChild(el('div', 'note', noteText));
+    var facts = el('div', 'facts'), parts = [];
+    if (showDate) parts.push(dayDate(r.date));
+    if (r.time) parts.push(fmtTime(r.time));
+    parts.forEach(function (p, i) { if (i) facts.appendChild(document.createTextNode(' · ')); facts.appendChild(document.createTextNode(p)); });
+    var pr = fmtPrice(r);
+    if (pr) { if (parts.length) facts.appendChild(document.createTextNode(' · ')); facts.appendChild(el('span', r._free ? 'free' : null, pr)); }
+    if (facts.childNodes.length) act.appendChild(facts);
+    row.appendChild(act);
+
+    var v = el('div', 'venue'); v.appendChild(el('span', 'dot ' + r.tier));
+    var vd = el('div', null, r.venue);
+    var map = el('a', 'pin'); map.href = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent([r.venue, r._addr, 'Calgary AB'].filter(Boolean).join(', '));
+    map.target = '_blank'; map.rel = 'noopener'; map.title = 'Map and directions'; map.setAttribute('aria-label', 'Map of ' + r.venue); map.appendChild(svg(UI.pin));
+    vd.appendChild(map);
+    vd.appendChild(el('span', 'genre', [r._area !== 'Area not known' ? r._area : '', r.genre || r.gb.toLowerCase()].filter(Boolean).join(' · ')));
+    v.appendChild(vd); row.appendChild(v);
+
+    var acts = el('div', 'acts');
+    if (r.source) { var lk = el('a', 'tix', 'Tickets & info ↗'); lk.href = r.source; lk.target = '_blank'; lk.rel = 'noopener'; lk.title = host(r.source); acts.appendChild(lk); }
+    else acts.appendChild(el('span', 'tix none', 'No link yet'));
+    var ib = el('div', 'ibtns');
+    var sb = iconBtn('star', UI.star, stars[r._id] ? 'Starred (click to remove)' : 'Star this show');
+    sb.setAttribute('aria-pressed', String(!!stars[r._id]));
+    sb.addEventListener('click', function () { toggleStar(r, sb); });
+    ib.appendChild(sb);
+    var planned = !!plans[r._id];
+    var cb = iconBtn('ics', planned ? UI.calcheck : UI.cal, planned ? 'On My calendar (click for options)' : 'Add to My calendar, Google or Outlook');
+    cb.setAttribute('aria-haspopup', 'menu'); cb.setAttribute('aria-expanded', 'false'); cb.setAttribute('aria-pressed', String(planned));
+    cb.addEventListener('click', function () { openCalMenu(r, cb); });
+    ib.appendChild(cb);
+    ib.appendChild(iconLink(UI.spotify, 'Listen on Spotify', 'https://open.spotify.com/search/' + encodeURIComponent(r.artist)));
+    ib.appendChild(iconLink(UI.youtube, 'Watch on YouTube', 'https://www.youtube.com/results?search_query=' + encodeURIComponent(r.artist + ' live')));
+    var hb = iconBtn('hide', hidden[r._akey] ? UI.show : UI.hide, hidden[r._akey] ? 'Show ' + r.artist + ' again' : 'Not interested: hide every show by ' + r.artist);
+    hb.addEventListener('click', function () { hideAct(r); });
+    ib.appendChild(hb);
+    acts.appendChild(ib);
+    row.appendChild(acts);
+    return row;
+  }
+
+  // ---------------------------------------------------------------- views
+  var out = document.getElementById('out');
+  function dayCard(head) { var day = el('div', 'day'); day.appendChild(head); return day; }
+  function dayHead(r) {
+    var head = el('h3', 'day-head');
+    head.appendChild(el('span', 'dn', String(r._d.getDate())));
+    head.appendChild(el('span', 'dw', WDF[r._d.getDay()] + ' · ' + MONTHS[r._d.getMonth()]));
+    if (r.date === TODAY) head.appendChild(el('span', 'when', 'Today'));
+    else if (r.date === TOMORROW) head.appendChild(el('span', 'when', 'Tomorrow'));
+    return head;
+  }
+  function renderByDate(rows) {
+    var curM = null, curD = null, sec = null, day = null, nM = 0, nD = 0, h2small = null, dayN = null;
+    rows.forEach(function (r) {
+      if (r._m !== curM) {
+        if (h2small) h2small.textContent = plural(nM, 'show');
+        curM = r._m; nM = 0;
+        sec = el('section', 'month');
+        var h2 = el('h2', null, monthLabel(curM)); h2small = el('small'); h2.appendChild(h2small);
+        sec.appendChild(h2); out.appendChild(sec);
+      }
+      if (r.date !== curD) {
+        if (dayN) dayN.textContent = plural(nD, 'show');
+        curD = r.date; nD = 0;
+        var head = dayHead(r);
+        dayN = el('span', 'dc'); head.appendChild(dayN);
+        day = dayCard(head); day.dataset.date = r.date; sec.appendChild(day);
+      }
+      nM++; nD++;
+      day.appendChild(buildRow(r, false));
+    });
+    if (h2small) h2small.textContent = plural(nM, 'show');
+    if (dayN) dayN.textContent = plural(nD, 'show');
+  }
+  var BANDS = [[0, 0, 'Free'], [0.01, 24.99, 'Under $25'], [25, 49.99, '$25 to $49'], [50, 99.99, '$50 to $99'], [100, 1e9, '$100 and up']];
+  function renderGroups(rows) {
+    var groups = {}, order = [], title;
+    function keyOf(r) {
+      if (state.sort === 'venue') return r.venue;
+      if (state.sort === 'added') return r.added || '';
+      if (r.pmin == null) return 'z';
+      for (var i = 0; i < BANDS.length; i++) if (r.pmin >= BANDS[i][0] && r.pmin <= BANDS[i][1]) return 'b' + i;
+      return 'z';
+    }
+    rows.forEach(function (r) { var k = keyOf(r); if (!groups[k]) { groups[k] = []; order.push(k); } groups[k].push(r); });
+    if (state.sort === 'venue') { order.sort(function (a, b) { return a.localeCompare(b); }); title = 'By venue'; }
+    else if (state.sort === 'added') { order.sort(function (a, b) { return a === b ? 0 : !a ? 1 : !b ? -1 : a < b ? 1 : -1; }); title = 'Newest additions first'; }
+    else {
+      order.sort(); title = 'By price';
+      order.forEach(function (k) { groups[k].sort(function (a, b) { return (a.pmin || 0) - (b.pmin || 0) || (a.date < b.date ? -1 : a.date > b.date ? 1 : 0); }); });
+    }
+    var h = el('h2', 'listhead', title); h.appendChild(el('small', null, plural(rows.length, 'show'))); out.appendChild(h);
+    order.forEach(function (k) {
+      var list = groups[k], head = el('h3', 'day-head grp');
+      if (state.sort === 'venue') {
+        head.appendChild(el('span', 'dw', k));
+        var ar = list[0]._area; if (ar && ar !== 'Area not known') head.appendChild(el('span', 'sub', ar));
+      } else if (state.sort === 'added') {
+        head.appendChild(el('span', 'dw', k ? 'Added ' + dayDate(k) : 'On the list from the start'));
+        if (k && k === LATEST) head.appendChild(el('span', 'when', 'Latest'));
+      } else {
+        head.appendChild(el('span', 'dw', k === 'z' ? 'Price not listed' : BANDS[+k.slice(1)][2]));
+      }
+      head.appendChild(el('span', 'dc', plural(list.length, 'show')));
+      var card = dayCard(head);
+      list.forEach(function (r) { card.appendChild(buildRow(r, true)); });
+      out.appendChild(card);
+    });
+  }
+  function renderCalendar(rows) {
+    var byDate = {}, mlist = [];
+    rows.forEach(function (r) { (byDate[r.date] = byDate[r.date] || []).push(r); if (mlist.indexOf(r._m) === -1) mlist.push(r._m); });
+    mlist.forEach(function (m) {
+      var sec = el('section', 'month'), n = rows.filter(function (r) { return r._m === m; }).length;
+      var h2 = el('h2', null, monthLabel(m)); h2.appendChild(el('small', null, plural(n, 'show'))); sec.appendChild(h2);
+      var grid = el('div', 'cal');
+      WD.forEach(function (w) { grid.appendChild(el('div', 'wh', w)); });
+      var p = m.split('-'), first = new Date(+p[0], +p[1] - 1, 1), days = new Date(+p[0], +p[1], 0).getDate();
+      for (var i = 0; i < first.getDay(); i++) grid.appendChild(el('div', 'cell blank'));
+      for (var d = 1; d <= days; d++) {
+        var ds = m + '-' + ('0' + d).slice(-2), list = byDate[ds] || [], cell;
+        if (list.length) {
+          cell = el('button', 'cell'); cell.type = 'button';
+          cell.setAttribute('aria-label', dayDate(ds) + ': ' + plural(list.length, 'show') + '. Show the list for this day.');
+          (function (day) { cell.addEventListener('click', function () { showDay(day); }); })(ds);
+        } else cell = el('div', 'cell');
+        if (ds < TODAY) cell.classList.add('past');
+        if (ds === TODAY) cell.classList.add('today');
+        if (list.some(function (r) { return plans[r._id]; })) cell.classList.add('planned');
+        cell.appendChild(el('span', 'cd', String(d)));
+        if (list.length) {
+          cell.appendChild(el('span', 'cn', plural(list.length, 'show')));
+          var rank = function (r) { return plans[r._id] ? 2 : stars[r._id] ? 1 : 0; };
+          list.slice().sort(function (a, b) { return rank(b) - rank(a); }).slice(0, 3).forEach(function (r) {
+            var nm = el('span', 'nm' + (plans[r._id] ? ' planned' : stars[r._id] ? ' starred' : ''), r.artist); nm.title = r.artist + ' at ' + r.venue; cell.appendChild(nm);
+          });
+          if (list.length > 3) cell.appendChild(el('span', 'more', '+' + (list.length - 3) + ' more'));
+        }
+        grid.appendChild(cell);
+      }
+      sec.appendChild(grid); out.appendChild(sec);
+    });
+  }
+  // My calendar: everything you added, whatever the filters say. A month grid of your plans, then the shows themselves.
+  function planRows() {
+    return Object.keys(plans).map(function (id) {
+      if (BYID[id]) return BYID[id];
+      // no longer on the list (dropped by the sites, renamed, or earlier this month): rebuilt from what was saved
+      var p = plans[id];
+      return { _ghost: true, _id: id, date: p.d, time: p.t, artist: p.a, venue: p.v, source: p.s, support: '', notes: '', gb: 'Other',
+               _d: parseIso(p.d), _m: p.d.slice(0, 7), _akey: norm(p.a), _addr: (VENUES[p.v] || {}).addr || '' };
+    }).sort(function (a, b) { return a.date < b.date ? -1 : a.date > b.date ? 1 : (a.time || '99') < (b.time || '99') ? -1 : 1; });
+  }
+  function ghostRow(r) {
+    var row = el('div', 'row');
+    var gic = el('div', 'gicon'); gic.appendChild(genreIcon('Other')); row.appendChild(gic);
+    var act = el('div', 'act'), a = el('div', 'artist', r.artist);
+    a.appendChild(el('span', 'pill gone', 'No longer listed'));
+    act.appendChild(a);
+    act.appendChild(el('div', 'note', 'The listing sites no longer show this. Check with the venue before you go.'));
+    if (r.time) act.appendChild(el('div', 'facts', fmtTime(r.time)));
+    row.appendChild(act);
+    var v = el('div', 'venue'); v.appendChild(el('span', 'dot')); v.appendChild(el('div', null, r.venue)); row.appendChild(v);
+    var acts = el('div', 'acts');
+    if (r.source) { var lk = el('a', 'tix', 'Tickets & info ↗'); lk.href = r.source; lk.target = '_blank'; lk.rel = 'noopener'; acts.appendChild(lk); }
+    var rm = el('button', 'btn small', 'Take off My calendar'); rm.type = 'button';
+    rm.addEventListener('click', function () { delete plans[r._id]; savePlans(); render(); });
+    acts.appendChild(rm); row.appendChild(acts);
+    return row;
+  }
+  function renderMine() {
+    var rows = planRows(), rowEls = {};
+    var h = el('h2', 'listhead', 'My calendar'); h.appendChild(el('small', null, plural(rows.length, 'show'))); out.appendChild(h);
+    out.appendChild(el('p', 'mine-note', 'Shows you add with the calendar button on any show. Kept in this guide on this PC; the filters above don’t apply here.'));
+    if (!rows.length) {
+      out.appendChild(el('div', 'empty', 'Nothing on your calendar yet. Click the calendar button on any show and choose "Add to My calendar".'));
+      return;
+    }
+    var mlist = []; rows.forEach(function (r) { if (mlist.indexOf(r._m) === -1) mlist.push(r._m); });
+    mlist.forEach(function (m) {
+      var mrows = rows.filter(function (r) { return r._m === m; });
+      var sec = el('section', 'month'), h2 = el('h2', null, monthLabel(m));
+      h2.appendChild(el('small', null, plural(mrows.length, 'show'))); sec.appendChild(h2);
+      var grid = el('div', 'cal');
+      WD.forEach(function (w) { grid.appendChild(el('div', 'wh', w)); });
+      var p = m.split('-'), first = new Date(+p[0], +p[1] - 1, 1), days = new Date(+p[0], +p[1], 0).getDate();
+      for (var i = 0; i < first.getDay(); i++) grid.appendChild(el('div', 'cell blank'));
+      for (var d = 1; d <= days; d++) {
+        var ds = m + '-' + ('0' + d).slice(-2), list = mrows.filter(function (r) { return r.date === ds; }), cell = el('div', 'cell');
+        if (ds < TODAY) cell.classList.add('past');
+        if (ds === TODAY) cell.classList.add('today');
+        if (list.length) cell.classList.add('planned');
+        cell.appendChild(el('span', 'cd', String(d)));
+        if (list.length > 1) cell.appendChild(el('span', 'cn clash', 'Double-booked'));
+        list.forEach(function (r) {
+          var chip = el('button', 'chip' + (r.date >= TODAY && (r._ghost || r._cancel || r.gone) ? ' off' : '')); chip.type = 'button';
+          if (r.time) chip.appendChild(el('b', null, fmtTime(r.time).replace(':00', '').replace(' ', '').toLowerCase()));
+          chip.appendChild(document.createTextNode(r.artist));
+          chip.title = r.artist + ' · ' + r.venue + (r.time ? ' · ' + fmtTime(r.time) : '');
+          chip.addEventListener('click', function () {
+            var t = rowEls[r._id]; if (!t) return;
+            t.scrollIntoView({ behavior: 'smooth', block: 'center' }); t.classList.add('flash'); setTimeout(function () { t.classList.remove('flash'); }, 1600);
+          });
+          cell.appendChild(chip);
+        });
+        grid.appendChild(cell);
+      }
+      sec.appendChild(grid);
+      // the shows themselves, one card per date
+      var curD = null, card = null;
+      mrows.forEach(function (r) {
+        if (r.date < TODAY) return;   // earlier this month: shown in the grid only
+        if (r.date !== curD) { curD = r.date; card = dayCard(dayHead(r)); card.style.marginTop = '14px'; sec.appendChild(card); }
+        var row = r._ghost ? ghostRow(r) : buildRow(r, false);
+        rowEls[r._id] = row; card.appendChild(row);
+      });
+      out.appendChild(sec);
+    });
+  }
+  function showDay(ds) {
+    state.view = 'list'; mem.set('view', 'list');
+    state.when = 'pick'; state.from = ds; state.to = ds;
+    render();
+    scrollToList();
+  }
+
+  // ---------------------------------------------------------------- render
+  var whenSel = document.getElementById('when'), fromIn = document.getElementById('from'), toIn = document.getElementById('to');
+  var sortSel = document.getElementById('sort'), hiddenBtn = document.getElementById('hiddenBtn'), icsAll = document.getElementById('icsAll');
+  function syncControls() {
+    Array.prototype.forEach.call(tierWrap.children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.k === state.tier)); });
+    syncQuick();
+    whenSel.value = state.when; whenSel.classList.toggle('active', state.when !== 'any');
+    document.getElementById('dates').hidden = state.when !== 'pick';
+    fromIn.value = state.from; toIn.value = state.to;
+    fromIn.classList.toggle('active', !!state.from); toIn.classList.toggle('active', !!state.to);
+    sortSel.value = state.sort; sortSel.disabled = state.view !== 'list';
+    var np = Object.keys(plans).length;
+    Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function (b) {
+      b.setAttribute('aria-pressed', String(b.dataset.view === state.view));
+      if (b.dataset.view === 'mine') b.textContent = 'My calendar' + (np ? ' · ' + np : '');
+    });
+    Array.prototype.forEach.call(legendWrap.children, function (b) { b.setAttribute('aria-pressed', String(b.dataset.k === state.tier)); });
+    var nh = Object.keys(hidden).length;
+    hiddenBtn.hidden = !nh;
+    hiddenBtn.textContent = state.showHidden ? 'Hide the ' + nh + ' again' : plural(nh, 'act') + ' hidden · Show';
+  }
+  function render() {
+    closeMenu();
+    syncControls();
+    out.textContent = '';
+    if (state.view === 'mine') {
+      var upcoming = planRows().filter(function (r) { return r.date >= TODAY; }).length;
+      document.getElementById('count').textContent = 'My calendar: ' + plural(upcoming, 'upcoming show');
+      icsAll.textContent = 'Add all to Outlook'; icsAll.hidden = FRAMED || !upcoming;
+      renderMine();
+    } else {
+      var rows = filtered();
+      document.getElementById('count').textContent = rows.length === DATA.length ? 'Showing all ' + rows.length + ' shows' : 'Showing ' + rows.length + ' of ' + DATA.length + ' shows';
+      icsAll.textContent = 'Add these to Outlook'; icsAll.hidden = FRAMED || !(state.quick === 'mine' && rows.length);
+      if (!rows.length) {
+        out.appendChild(el('div', 'empty', !DATA.length
+          ? 'No shows on the list yet. On the PC, open the Start menu, find Dan’s Calgary Live Music Guide and choose "Update concert list now".'
+          : state.quick === 'mine' && !Object.keys(stars).length
+          ? 'No starred shows yet. Click the ☆ on any show to keep it here.'
+          : 'The stage is quiet: no shows match these filters. Clear a filter or try a shorter search.'));
+      } else if (state.view === 'cal') renderCalendar(rows);
+      else if (state.sort === 'date') renderByDate(rows);
+      else renderGroups(rows);
+      if (state.quick === 'mine') lostStars();
+    }
+    banners();
+    // put keyboard focus back on the button that caused the redraw
+    if (refocus) {
+      var row = out.querySelector('.row[data-id="' + (window.CSS && CSS.escape ? CSS.escape(refocus.id) : refocus.id) + '"]');
+      var target = row && row.querySelector('.ib.' + refocus.cls);
+      refocus = null;
+      if (target) target.focus({ preventScroll: true });
+    }
+  }
+  // starred shows that are no longer on the list (renamed or dropped by the sites)
+  function lostStars() {
+    var lost = Object.keys(stars).filter(function (id) { return !BYID[id]; });
+    if (!lost.length) return;
+    var box = el('div', 'lost');
+    box.appendChild(el('b', null, plural(lost.length, 'starred show') + ' no longer on the list: '));
+    box.appendChild(document.createTextNode(lost.map(function (id) { var s = stars[id]; return s.a + ' (' + shortDate(s.d) + ', ' + s.v + ')'; }).join('; ') + '. Check the venue before you go. '));
+    var rm = el('button', 'linkbtn', 'Forget them'); rm.type = 'button';
+    rm.addEventListener('click', function () { lost.forEach(function (id) { delete stars[id]; }); saveStars(); render(); });
+    box.appendChild(rm);
+    out.appendChild(box);
+  }
+
+  // ---------------------------------------------------------------- banners
+  // what has been dismissed is kept in memory (and saved when the browser allows), so a redraw never brings it back
+  var bannerState = { staleClosed: false, seenRun: mem.get('seenRun', null), troubleClosed: '' };
+  function markWatchSeen() { bannerState.seenRun = INFO.run; mem.set('seenRun', INFO.run); }
+  function banners() {
+    var wrap = document.getElementById('banners'); wrap.textContent = '';
+    function add(kind, title, lines, buttons, onClose) {
+      var b = el('div', 'banner ' + kind), t = el('div', 'bt');
+      t.appendChild(el('b', null, title)); if (lines) t.appendChild(el('div', 'bl', lines));
+      b.appendChild(t);
+      var x = el('div', 'bx');
+      (buttons || []).forEach(function (bt) { var k = el('button', 'btn small', bt[0]); k.type = 'button'; k.addEventListener('click', bt[1]); x.appendChild(k); });
+      var c = el('button', 'btn small', 'Dismiss'); c.type = 'button';
+      c.addEventListener('click', function () { b.remove(); if (onClose) onClose(); });
+      x.appendChild(c); b.appendChild(x); wrap.appendChild(b);
+    }
+    var age = INFO.run ? dayDiff(INFO.run, TODAY) : 0;
+    if (age > (INFO.stale_days || 10) && !bannerState.staleClosed) {
+      add('', 'This list was last updated ' + age + ' days ago (' + INFO.checked + ').',
+        'The weekly refresh may have stopped. On the PC, open the Start menu, find Dan’s Calgary Live Music Guide and choose "Update concert list now".',
+        null, function () { bannerState.staleClosed = true; });
+    }
+    var seen = bannerState.seenRun;
+    var fresh = seen === INFO.run ? [] : DATA.filter(function (r) { return r._watch && r.added && (seen ? r.added > seen : r._latest); });
+    if (fresh.length) {
+      add('watch', fresh.length === 1 ? 'New from your watchlist' : fresh.length + ' new shows from your watchlist',
+        fresh.slice(0, 4).map(function (r) { return r.artist + ' (' + dayDate(r.date) + ', ' + r.venue + ')'; }).join(' · ') + (fresh.length > 4 ? ' and ' + (fresh.length - 4) + ' more' : ''),
+        [['Show them', function () { markWatchSeen(); state.quick = 'watch'; onFilter(); }]],
+        markWatchSeen);
+    }
+    // starred or planned shows that were cancelled, may be, or have dropped off the list entirely
+    var trouble = DATA.filter(function (r) { return (stars[r._id] || plans[r._id]) && (r._cancel || r.gone); })
+      .map(function (r) { return r.artist + ' (' + dayDate(r.date) + '): ' + (r._cancel ? 'cancelled' : 'no longer listed by the sites'); });
+    var lostPlans = Object.keys(plans).filter(function (id) { return !BYID[id] && plans[id].d >= TODAY; });
+    lostPlans.forEach(function (id) { trouble.push(plans[id].a + ' (' + dayDate(plans[id].d) + '): no longer on the list'); });
+    // a dismissed warning stays away until the list of problems changes
+    var troubleKey = trouble.join('|');
+    if (trouble.length && bannerState.troubleClosed !== troubleKey) {
+      var btns = [];
+      if (Object.keys(plans).length) btns.push(['My calendar', openMine]);
+      if (Object.keys(stars).length) btns.push(['My shows', function () { state.view = 'list'; state.quick = 'mine'; render(); }]);
+      add('alert', trouble.length === 1 ? 'One of your saved shows may be off' : trouble.length + ' of your saved shows may be off',
+        trouble.join(' · '), btns, function () { bannerState.troubleClosed = troubleKey; });
+    }
+  }
+
+  // ---------------------------------------------------------------- footer
+  var wb = document.getElementById('watchbody');
+  if (WATCHN.length) {
+    var terms = el('div', 'terms'); WATCHN.forEach(function (x) { terms.appendChild(el('span', null, x.w)); }); wb.appendChild(terms);
+    var nw = DATA.filter(function (r) { return r._watch; }).length;
+    wb.appendChild(el('p', null, plural(nw, 'upcoming show') + ' match. When a refresh finds a new one, Windows shows a notification and it is marked "Watching" here.'));
+  } else {
+    wb.appendChild(el('p', null, 'Your watchlist is empty. Add the artists and venues you care about, and when a refresh finds a new show from one of them, Windows shows a notification and the show is marked "Watching" here.'));
+  }
+  wb.appendChild(el('p', null, 'To change it on the PC: Start menu › Dan’s Calgary Live Music Guide › Edit watchlist. Type one name per line, save, close Notepad and press a key in the window that opened; the guide reopens with your changes.'));
+  var vWrap = document.getElementById('venues');
+  var tierOf = {}; DATA.forEach(function (r) { tierOf[r.venue] = r.tier; });
+  Object.keys(venueCount).sort(function (a, b) { return venueCount[b] - venueCount[a] || a.localeCompare(b); }).forEach(function (v) {
+    var b = el('button'); b.type = 'button'; b.title = v + ((VENUES[v] || {}).area ? ' · ' + VENUES[v].area : '');
+    b.appendChild(el('span', 'dot ' + tierOf[v])); b.appendChild(el('span', 'vn', v)); b.appendChild(el('span', 'n', String(venueCount[v])));
+    b.addEventListener('click', function () { msVenue.set([v]); state.tier = 'all'; state.view = 'list'; render(); scrollToList(); });
+    vWrap.appendChild(b);
+  });
+  var cav = document.getElementById('caveats');
+  INFO.caveats.forEach(function (c) { cav.appendChild(el('p', null, c)); });
+
+  // ---------------------------------------------------------------- controls
+  // redraw once typing pauses rather than on every key
+  var searchT;
+  document.getElementById('q').addEventListener('input', function (e) {
+    clearTimeout(searchT);
+    searchT = setTimeout(function () { state.q = e.target.value; onFilter(); }, 120);
+  });
+  whenSel.addEventListener('change', function () { state.when = whenSel.value; if (state.when !== 'pick') { state.from = ''; state.to = ''; } onFilter(); });
+  fromIn.addEventListener('change', function () { state.from = fromIn.value; onFilter(); });
+  toIn.addEventListener('change', function () { state.to = toIn.value; onFilter(); });
+  sortSel.addEventListener('change', function () { state.sort = sortSel.value; mem.set('sort', state.sort); render(); });
+  Array.prototype.forEach.call(document.querySelectorAll('.seg button'), function (b) {
+    b.addEventListener('click', function () { state.view = b.dataset.view; mem.set('view', state.view); render(); });
+  });
+  hiddenBtn.addEventListener('click', function () { state.showHidden = !state.showHidden; onFilter(); });
+  icsAll.addEventListener('click', function () {
+    if (state.view === 'mine') addToCalendar(planRows().filter(function (r) { return r.date >= TODAY; }), 'my-calendar.ics');
+    else addToCalendar(filtered(), 'my-starred-shows.ics');
+  });
+  document.getElementById('clear').addEventListener('click', function () {
+    clearTimeout(searchT);
+    state.q = ''; state.tier = 'all'; state.quick = ''; state.when = 'any'; state.from = ''; state.to = ''; state.showHidden = false;
+    document.getElementById('q').value = ''; msVenue.clear(); msArea.clear(); msMonth.clear(); msGenre.clear(); onFilter();
+  });
+
+  // the midnight reload keeps the search, filters and scroll position (this tab only)
+  function keepSession() {
+    try {
+      sessionStorage.setItem('dclmg:session', JSON.stringify({
+        q: state.q, tier: state.tier, quick: state.quick, when: state.when, from: state.from, to: state.to, showHidden: state.showHidden,
+        ms: { venue: msVenue.keys(), area: msArea.keys(), month: msMonth.keys(), genre: msGenre.keys() }, y: window.pageYOffset
+      }));
+    } catch (e) { }
+  }
+  function restoreSession() {
+    var s = null;
+    try { s = JSON.parse(sessionStorage.getItem('dclmg:session') || 'null'); sessionStorage.removeItem('dclmg:session'); } catch (e) { }
+    if (!s) return null;
+    ['q', 'tier', 'quick', 'when', 'from', 'to', 'showHidden'].forEach(function (k) { if (s[k] != null) state[k] = s[k]; });
+    document.getElementById('q').value = state.q || '';
+    if (s.ms) { msVenue.set(s.ms.venue || []); msArea.set(s.ms.area || []); msMonth.set(s.ms.month || []); msGenre.set(s.ms.genre || []); }
+    return s;
+  }
+
+  var toastT, toastFn = null;
+  var toastEl = document.getElementById('toast'), toastBtn = document.getElementById('toastbtn');
+  function toast(msg, action, fn) {
+    document.getElementById('toastmsg').textContent = msg;
+    toastBtn.hidden = !action; toastBtn.textContent = action || ''; toastFn = fn || null;
+    toastEl.hidden = false; clearTimeout(toastT); toastT = setTimeout(function () { toastEl.hidden = true; }, action ? 6000 : 3000);
+  }
+  toastBtn.addEventListener('click', function () { toastEl.hidden = true; if (toastFn) toastFn(); });
+  var box = document.getElementById('copybox');
+  box.addEventListener('keydown', function (e) { if (e.key === 'Escape') box.hidden = true; });
+  box.addEventListener('blur', function () { box.hidden = true; });
+  document.getElementById('copy').addEventListener('click', function () {
+    // the list on screen: My calendar's shows in that view, otherwise the filtered list
+    var rows = state.view === 'mine' ? planRows().filter(function (r) { return r.date >= TODAY; }) : filtered();
+    var lines = ['Date\tDay\tTime\tArtist\tSupport\tVenue\tArea\tGenre\tPrice\tNotes\tLink'];
+    rows.forEach(function (r) {
+      lines.push([r.date, WD[r._d.getDay()], fmtTime(r.time), r.artist, r.support, r.venue, r._area, r.genre, fmtPrice(r), r.notes, r.source]
+        .map(function (x) { return (x || '').replace(/[\t\r\n]+/g, ' '); }).join('\t'));
+    });
+    var text = lines.join('\n');
+    function fallback() { box.hidden = false; box.value = text; box.focus(); box.select(); toast('Press Ctrl+C to copy, then Esc to close the box'); }
+    try {
+      navigator.clipboard.writeText(text).then(function () { box.hidden = true; toast('Copied ' + rows.length + ' shows. Paste into Excel.'); }, fallback);
+    } catch (e) { fallback(); }
+  });
+
+  // keep the date headers just below the filter bar while it is sticky; its height changes with the window width
+  var filtersEl = document.querySelector('.filters');
+  function setStick() {
+    var h = getComputedStyle(filtersEl).position === 'sticky' ? Math.floor(filtersEl.getBoundingClientRect().height) : 0;
+    document.documentElement.style.setProperty('--filters-h', h + 'px');
+  }
+  if (window.ResizeObserver) new ResizeObserver(setStick).observe(filtersEl);
+  window.addEventListener('resize', setStick);
+  var stickyMq = window.matchMedia('(min-width: 900px) and (min-height: 820px)');
+  if (stickyMq.addEventListener) stickyMq.addEventListener('change', setStick); else stickyMq.addListener(setStick);
+  setStick();
+
+  var restored = restoreSession();
+  render();
+  if (restored && restored.y) window.scrollTo(0, restored.y);
+})();
+</script>

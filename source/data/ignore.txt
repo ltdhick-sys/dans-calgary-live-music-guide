@@ -1,0 +1,41 @@
+# Acts or event titles the updater should always skip, one per line.
+# Each line is matched (case-insensitive) against the artist and the event title, so a plain
+# name works and so does a regular expression. Lines starting with # are ignored.
+#
+# Live Nation venue pages list comedians as music events, and only the Ticketmaster API tells
+# them apart. When a non-music show slips into the change report, add its name here.
+
+# comedians seen on Live Nation / Eventbrite listings (Oct 2026)
+Jim Jefferies
+Gerry Dee
+Gianmarco Soresi
+Laura Ramoso
+Adam Ray
+Morgan Jay
+Urzila Carlson
+David Sedaris
+Caroline Rhea
+Sam Morril
+Henry Sir
+Sugar Sammy
+Big Jay Oakerson
+Joe Dombrowski
+Usama Siddiquee
+Luke Kidgell
+Luke & Wyatt
+Killers of Kill Tony
+
+# weekly club theme nights with no named act (Commonwealth, via Ticketmaster)
+Free RSVP
+World Famous
+Monster Ball
+Common Saturdays
+Aura Battle
+
+# non-music events
+Nutcracker \(In a Nutshell\)
+Twilight Glow of Romeo
+Cvntressas
+Nailed Shut
+Pride In Business
+Mysteries of the Macabre

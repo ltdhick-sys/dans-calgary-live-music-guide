@@ -1,0 +1,4 @@
+# Shows to add by hand, for venues the updater can't read (Palace, Blues Can, Calgary Phil, festival lineups...).
+# Tab-separated. Keep the header line below. date is YYYY-MM-DD; support is a comma-separated list.
+# Lines starting with # are ignored. Rows are merged on every run and drop off once the date passes.
+date	artist	support	venue	genre	notes	source

@@ -1,0 +1,9 @@
+# Your watchlist: one artist or venue per line.
+# When a refresh finds a new show that mentions one of these, Windows shows a notification
+# and the show gets a "Watching" badge in the guide. Spelling and capitals don't need to be exact
+# ("arkells" matches "The Arkells"), but the name does need to be at least 3 letters.
+# Lines starting with # are ignored. Remove the # in front of an example to try it.
+#
+# Arkells
+# Bill Callahan
+# Palomino

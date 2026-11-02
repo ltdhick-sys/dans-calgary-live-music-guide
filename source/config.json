@@ -1,0 +1,110 @@
+{
+  "window_days": 365,
+  "request_delay_ms": 800,
+  "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0 Safari/537.36",
+  "new_badge_days": 7,
+
+  "allowed_localities": "calgary|cochrane|airdrie|okotoks|chestermere|tsuut|de winton|priddis|rocky view|foothills|redwood meadows|bragg creek",
+  "exclude_pattern": "\\bcomedy\\b|\\bcomedians?\\b|\\bstand[- ]?up\\b|стендап|\\bimprov\\b|\\bfashion (show|week|market)\\b|facility tour|gallery (tour|admission)|kill tony|exclusive concert event|\\btrivia\\b|\\bkaraoke\\b|\\bbingo\\b|\\bdrag (show|brunch|queens?|bingo|race|night)\\b|\\bclown (show|school|workshop)\\b|\\bburlesque\\b|\\bwrestling\\b|\\bmma\\b|\\byoga (class|session|flow)\\b|\\b(goat|beer|sunset|morning) yoga\\b|\\b(farmers'?|night|holiday|christmas|craft|vintage|artisan|makers'?) markets?\\b|\\bcraft fair\\b|\\bworkshops?\\b|\\bmasterclass\\b|\\b(dance|art|cooking|painting) class(es)?\\b|\\b(guitar|piano|drum|vocal|music|dance) lessons?\\b|\\bseminar\\b|\\bconference\\b|\\bnetworking\\b|\\bscreening\\b|film fest|\\bmovie (night|screening|marathon)\\b|\\bpumpkin (patch|carving|fest|festival|walk)\\b|\\bhaunted (house|walk|tour|hayride|mansion|maze)\\b|escape room|paint (night|and sip)|sip (and|&) paint|magic show|\\bhypnotist\\b|\\bhypnosis show\\b|\\blecture\\b|book launch|\\bexpo\\b|open mic|open jam|innovation week|speed dating|tour of the|walking tour|kids camp|\\bpoetry (slam|night|reading)\\b|\\bacro\\b|\\bgymnast|halloween (party|bash|special)|glow party|costume party|weekend brunch|winterruption|free rsvp|pregame",
+  "exclude_venue_pattern": "laugh shop|comedy|yuk yuk|film festival|winterruption|contemporary calgary|crew calgary",
+  "music_pattern": "concert|live music|\\bband\\b|\\btour\\b|tribute|symphony|orchestra|philharmonic|choir|choral|jazz|blues|\\bfolk\\b|country|\\brock\\b|metal|punk|hip.?hop|\\brap\\b|\\bdj\\b|\\bedm\\b|techno|house music|acoustic|singer|songwriter|quartet|quintet|\\btrio\\b|ensemble|recital|album|record release|ep release|opera|candlelight|unplugged|showcase|\\bmusic\\b|gig\\b|listening room|fiddle|bluegrass|reggae|soul|r&b|funk|indie",
+
+  "sources": [
+    { "name": "Songkick (Calgary metro)", "type": "jsonld", "url": "https://www.songkick.com/metro-areas/27359-canada-calgary?page={page}", "max_pages": 15, "music_only": false, "enabled": true },
+    { "name": "Eventbrite (Calgary concerts)", "type": "jsonld", "url": "https://www.eventbrite.ca/d/canada--calgary/concerts/?page={page}", "max_pages": 12, "music_only": true, "enabled": true },
+    { "name": "Showpass (Calgary)", "type": "showpass", "query": "calgary", "page_size": 50, "max_pages": 15, "music_only": true, "enabled": true },
+    { "name": "Ticketmaster API", "type": "ticketmaster", "api_key": "", "latlong": "51.0447,-114.0719", "radius_km": 40, "enabled": true },
+
+    { "name": "Live Nation: Scotiabank Saddledome", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZpZAFFl7A/scotiabank-saddledome-events", "venue": "Scotiabank Saddledome", "enabled": true },
+    { "name": "Live Nation: Scotia Place", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZ917ASH5/scotia-place-events", "venue": "Scotia Place", "enabled": true },
+    { "name": "Live Nation: Jubilee Auditorium", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZpZAdEIaA/southern-alberta-jubilee-auditorium-events", "venue": "Southern Alberta Jubilee Auditorium", "enabled": true },
+    { "name": "Live Nation: Grey Eagle Event Centre", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZpZAJAaAA/grey-eagle-event-centre-events", "venue": "Grey Eagle Event Centre", "enabled": true },
+    { "name": "Live Nation: Jack Singer Concert Hall", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZpZAkIdeA/jack-singer-concert-hall-at-werklund-centre-events", "venue": "Jack Singer Concert Hall", "enabled": true },
+    { "name": "Live Nation: Bella Concert Hall", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZ917AfV7/bella-concert-hall-mount-royal-university-events", "venue": "Bella Concert Hall", "enabled": true },
+    { "name": "Live Nation: MacEwan Hall", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZpaKVpe/macewan-hall-events", "venue": "MacEwan Hall", "enabled": true },
+    { "name": "Live Nation: MacEwan Ballroom", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZpZAkE7tA/macewan-ballroom-events", "venue": "MacEwan Ballroom", "enabled": true },
+    { "name": "Live Nation: Deerfoot Inn & Casino", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZpZAFaktA/deerfoot-inn-casino-events", "venue": "Deerfoot Inn & Casino", "enabled": true },
+    { "name": "Live Nation: Modern Love", "type": "jsonld", "url": "https://www.livenation.com/venue/rZ7HnEZ17fyP4/modern-love-events", "venue": "Modern Love", "enabled": true },
+    { "name": "Live Nation: Dickens Pub", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZpZAkE7FA/dickens-pub-events", "venue": "Dickens Pub", "enabled": true },
+    { "name": "Live Nation: The Arrowhead", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZpZAJ7nvA/the-arrowhead-events", "venue": "The Arrowhead", "enabled": true },
+    { "name": "Live Nation: The Arrowhead (2)", "type": "jsonld", "url": "https://www.livenation.com/venue/rZ7HnEZ17rkPV/the-arrowhead-events", "venue": "The Arrowhead", "enabled": true },
+    { "name": "Live Nation: The King Eddy", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZ917AYEY/king-eddy-events", "venue": "The King Eddy", "enabled": true },
+    { "name": "Live Nation: Ranchman's", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZpZAkFlvA/ranchman-s-cookhouse-and-dancehall-events", "venue": "Ranchman's", "enabled": true },
+    { "name": "Live Nation: Festival Hall", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZpZAFEldA/festival-hall-events", "venue": "Festival Hall", "enabled": true },
+    { "name": "Live Nation: Knox United Church", "type": "jsonld", "url": "https://www.livenation.com/venue/KovZpZAaednA/knox-united-church-calgary-events", "venue": "Knox United Church", "enabled": true },
+    { "name": "Live Nation: National on 10th", "type": "jsonld", "url": "https://www.livenation.com/venue/rZ7HnEZ174_uI/national-on-10th-main-floor-events", "venue": "National on 10th", "enabled": true }
+  ],
+
+  "venue_aliases": [
+    { "pattern": "^(the )?arrowhead|^back alley", "name": "The Arrowhead" },
+    { "pattern": "^common\\s*/?\\s*undrgr|^commonwealth", "name": "Commonwealth Bar & Stage" },
+    { "pattern": "^cornerstone music", "name": "Cornerstone Music Cafe" },
+    { "pattern": "^velvet room", "name": "Velvet Room" },
+    { "pattern": "^calgary folk club", "name": "Calgary Folk Club" },
+    { "pattern": "^red deer lake united", "name": "Red Deer Lake United Church" },
+    { "pattern": "^studio bell|national music centre", "name": "Studio Bell (National Music Centre)" },
+    { "pattern": "^big four roadhouse", "name": "Big Four Roadhouse" },
+    { "pattern": "^(the )?nash restaurant|^the nash$", "name": "The Nash" },
+    { "pattern": "^(the )?king eddy", "name": "The King Eddy" },
+    { "pattern": "^(the )?palomino(?! ballroom)", "name": "The Palomino Smokehouse" },
+    { "pattern": "saddledome", "name": "Scotiabank Saddledome" },
+    { "pattern": "jubilee", "name": "Southern Alberta Jubilee Auditorium" },
+    { "pattern": "jack singer", "name": "Jack Singer Concert Hall" },
+    { "pattern": "^bella concert hall", "name": "Bella Concert Hall" },
+    { "pattern": "^grey eagle (event centre|resort)", "name": "Grey Eagle Event Centre" },
+    { "pattern": "^macewan hall", "name": "MacEwan Hall" },
+    { "pattern": "^(the )?palace theatre", "name": "Palace Theatre" },
+    { "pattern": "^dickens", "name": "Dickens Pub" },
+    { "pattern": "^ranchman", "name": "Ranchman's" },
+    { "pattern": "^(the )?blues can", "name": "The Blues Can" },
+    { "pattern": "^(the )?attic bar", "name": "The Attic Bar & Stage" },
+    { "pattern": "^deerfoot inn", "name": "Deerfoot Inn & Casino" },
+    { "pattern": "^(the )?ship (&|and) anchor", "name": "Ship & Anchor" },
+    { "pattern": "^ironwood", "name": "Ironwood Stage & Grill" },
+    { "pattern": "^knox united", "name": "Knox United Church" },
+    { "pattern": "^grace presbyterian", "name": "Grace Presbyterian Church" },
+    { "pattern": "^(the )?grand( theatre)?$|^theatre junction grand", "name": "The Grand" },
+    { "pattern": "^modern love", "name": "Modern Love" }
+  ],
+
+  "tiers": {
+    "arena": "saddledome|scotia place|mcmahon|bmo centre|grandstand",
+    "club": "commonwealth|gateway|palomino smokehouse|king eddy|dickens|ironwood|blues can|mikey|ship & anchor|cowboys|ranchman|modern love|arrowhead|attic|national on 10th|velvet room|gulbar|prohibition|cornerstone|sub rosa|brewing|brewery|pub\\b|bar\\b|lounge|tavern|cafe",
+    "hall": "church|united|presbyterian|anglican|chapel|cathedral|hall|centre|center|community|association|theatre|theater|auditorium|library|spruce meadows|winsport|legion|ymca|folk club|house concert|gardens|studio bell|grey eagle|deerfoot inn|roadhouse|ballroom|equi-plex"
+  },
+
+  "stale_after_days": 10,
+
+  "city": { "south": 50.84, "north": 51.22, "west": -114.32, "east": -113.86, "ns_split_lat": 51.0505, "ew_split_lon": -114.0625 },
+  "areas": [
+    { "name": "Downtown", "lat": 51.0462, "lon": -114.0655, "radius_km": 0.85 },
+    { "name": "East Village", "lat": 51.0450, "lon": -114.0510, "radius_km": 0.6 },
+    { "name": "Stampede Park", "lat": 51.0372, "lon": -114.0535, "radius_km": 0.75 },
+    { "name": "Beltline & 17th Ave", "lat": 51.0395, "lon": -114.0775, "radius_km": 1.4 },
+    { "name": "Inglewood", "lat": 51.0380, "lon": -114.0300, "radius_km": 1.2 },
+    { "name": "Kensington", "lat": 51.0525, "lon": -114.0880, "radius_km": 0.9 },
+    { "name": "Bridgeland", "lat": 51.0540, "lon": -114.0420, "radius_km": 0.7 }
+  ],
+  "venue_areas": [
+    { "pattern": "\\((airdrie|cochrane|okotoks|chestermere|de winton|bragg creek)\\)|red deer lake", "area": "Outside Calgary" },
+    { "pattern": "blues can|cafe gravity|the nash\\b|cold garden|high line brewing", "area": "Inglewood" },
+    { "pattern": "king eddy|central library|st\\.? patrick'?s island|studio bell", "area": "East Village" },
+    { "pattern": "stampede park|cowboys park|nashville north|nutrien western|badlands tent", "area": "Stampede Park" },
+    { "pattern": "werklund centre|arts commons|devonian gardens|brookfield place", "area": "Downtown" },
+    { "pattern": "ship & anchor|kawa espresso|jungle bird", "area": "Beltline & 17th Ave" },
+    { "pattern": "spruce meadows|sca community|braeside community", "area": "SW Calgary" },
+    { "pattern": "st\\.? giles presbyterian|cjsw", "area": "NW Calgary" },
+    { "pattern": "max bell centre|fac deerfoot", "area": "SE Calgary" }
+  ],
+
+  "page": {
+    "lede": "Every announced show the updater could find for the next 12 months, from the Saddledome and the Jubilee down to the Palomino, the King Eddy, the Blues Can and the church-hall folk series. Star the shows you want, narrow by date, area, genre or price, and copy any list straight into Excel or your calendar.",
+    "caveats": [
+      "This list is rebuilt from Songkick, Eventbrite, Showpass, Live Nation venue pages and (when a key is set) the Ticketmaster API. Shows found once stay on the list until their date passes, so a show cancelled quietly at the source can linger. Check the linked page before you buy.",
+      "Venue sites that load their calendars by script (the Palace, Grey Eagle's own site, Werklund Centre, the Blues Can, the Calgary Phil, MRU tickets) are not read automatically. Shows from those venues come from the original October 2026 research, from the aggregators above, or from rows you add to data\\manual.tsv.",
+      "Clubs and bars usually announce only 1 to 3 months ahead, so later months fill in as the year goes on. Festival lineups (Stampede, Folk Fest, Sled Island) show up once they are announced.",
+      "\"May be cancelled\" means a show in the next 90 days that the listing sites used to show but has been missing from the last two complete refreshes. It is a prompt to check, not a confirmed cancellation.",
+      "Times and prices come from Showpass, Ticketmaster and the venue's own wording where they give them; many listings have neither. Prices are ticket prices before fees."
+    ]
+  }
+}
